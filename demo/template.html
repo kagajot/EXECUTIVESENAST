@@ -526,7 +526,7 @@ const PAGES = {
       v.append(el('button', { class: 'herocard', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', top.tool_id) },
         el('span', { class: 'label', style: 'color:inherit;opacity:.75', text: 'Best match for you' }), el('h2', { text: top.name }), el('p', { text: top.summary }), el('span', { class: 'herobtn', text: 'See how it fits' }), ill(top.category)));
     } else {
-      v.append(el('button', { class: 'herocard', style: `background:#5B8FD4;color:${onColor('#5B8FD4')}`, onclick: toChecks },
+      v.append(el('button', { class: 'herocard', style: `background:#4FB8B0;color:${onColor('#4FB8B0')}`, onclick: toChecks },
         el('span', { class: 'label', style: 'color:inherit;opacity:.75', text: 'Getting started' }), el('h2', { text: S.review ? 'Nothing can be shown yet' : 'Your first options start here' }),
         el('p', { text: S.review ? 'Clinician review is required and no catalogue entry has been reviewed.' : 'Answer a few questions to see safe tools.' }), el('span', { class: 'herobtn', text: 'Start a check-in' }), ill('bulb')));
     }
