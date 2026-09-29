@@ -625,7 +625,7 @@ const ICON = {
 // ---------- state + on-device storage (this browser only; nothing is sent anywhere)
 const LS = 'peo.app.v1';
 const blank = () => ({ person: { label: 'My profile', capacities: {}, risk_flags: [], risk_screening_complete: false, tech_literacy: [], budget_band: 3 }, environment: { confirmed_tags: [] }, occupation: { goals: [] } });
-const S = { profile: blank(), saved: [], onboarded: false, review: false, step: 0, stack: [{ page: 'onboard' }], cat: null, chips: [], text: '', task: null, confirmReset: false, learnTab: 'videos' };
+const S = { profile: blank(), saved: [], onboarded: false, review: false, step: 0, stack: [{ page: 'onboard' }], cat: null, chips: [], text: '', task: null, confirmReset: false, learnTab: 'videos', exploreAll: false };
 function load() {
   try {
     const d = JSON.parse(localStorage.getItem(LS) || 'null');
@@ -884,7 +884,7 @@ const ARTICLES = [
       { h: "How to get more options", list: ["Finish the check-ins in Learn", "Confirm facts about your home", "Ask your therapist about a tool you like. They can assess it with you"] } ],
     points: ["Left out means not confirmed, not banned for good.", "Answers you are unsure about count against a tool.", "Your therapist can go further than an app can."],
     cta: { text: "Open check-ins", act: 'checkins' } },
-  { id: 'a_bath', title: "Making the bathroom safer to use", topic: 'Bathroom', minutes: 3, color: '#5B8FD4', ill: 'bathing_toileting',
+  { id: 'a_bath', cats: ['bathing_toileting'], title: "Making the bathroom safer to use", topic: 'Bathroom', minutes: 3, color: '#5B8FD4', ill: 'bathing_toileting',
     summary: "Most bathroom accidents happen on wet, hard surfaces while stepping or standing up. Small changes make a big difference.",
     sections: [
       { h: "Where it goes wrong", list: ["Getting in and out of the bath or shower", "Standing up from the toilet", "Wet floors and loose mats"] },
@@ -1079,21 +1079,29 @@ const PAGES = {
         if (!r.length && !vids.length && !checks.length && !gds.length && !arts.length) box.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'Nothing safe matches that. Clear the search, or try a check-in in Learn to open more up.' }));
         return;
       }
-      // collage: best tools, then one Learn block
-      if (recs.length) box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Best for you' }), el('button', { class: 'link', text: 'See all', onclick: () => go('category', '__best') })),
-        el('div', { class: 'hscroll' }, ...recs.slice(0, 5).map((r) => { const c = CAT[r.category].color; return el('button', { class: 'fcard', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', r.tool_id) }, el('b', { text: r.name }), el('span', { text: CAT[r.category].label }), ill(r.category)); }))));
-      // Learn: one tile per content type, each with its own pictogram and its own destination
-      const nGuides = GUIDES.filter((x) => guideState(x) !== 'blocked').length, nVideos = VIDEOS.filter((x) => videoState(x, ids) !== 'blocked').length;
-      const nDone = CHECKINS.filter((c) => { const inf = checkinInfo(c, all); return inf.done === inf.total; }).length;
-      const TYPES = [
-        ['guides', 'Guides', `${nGuides} step by step`, '#4FB8B0', '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.4 1.4L7 5M3.5 12l1.4 1.4L7 11M3.5 18l1.4 1.4L7 17"/>'],
-        ['articles', 'Articles', `${ARTICLES.length} short reads`, '#F6C56B', '<path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 8h3"/>'],
-        ['videos', 'Videos', `${nVideos} to watch`, '#C9A6D8', '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 9.5l4.5 2.5-4.5 2.5z"/>'],
-        ['checkins', 'Check-ins', `${nDone} of ${CHECKINS.length} done`, '#F4A6A0', '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/>'],
-      ];
-      box.append(el('div', { class: 'sec' }, el('h2', { text: 'Learn' }),
-        el('div', { class: 'ltiles' }, ...TYPES.map(([id, title, meta, color, icon]) => el('button', { class: 'ltile', style: `background:${color}`, onclick: () => { S.learnTab = id; tab('learn'); } },
-          el('span', { class: 'lico', html: `<svg viewBox="0 0 24 24">${icon}</svg>` }), el('b', { text: title }), el('span', { text: meta }))))));
+      // Explore is organised by what you want to do: for each goal, the safe tool with its guide, video and reading together.
+      // (Learn is the library organised by content type.)
+      const goals = S.profile.occupation.goals, showGoals = S.exploreAll ? goals : goals.slice(0, 3);
+      const goalSection = (gid) => {
+        const cat = T.tasks[gid].category, mine = recs.filter((r) => r.addresses.includes(gid)), toolIds = new Set(mine.map((r) => r.tool_id));
+        const guide = GUIDES.find((g) => guideState(g) !== 'blocked' && (g.tool ? toolIds.has(g.tool) : g.category === cat));
+        const video = VIDEOS.find((x) => videoState(x, ids) !== 'blocked' && (x.tool ? toolIds.has(x.tool) : x.category === cat));
+        const art = ARTICLES.find((a) => a.cats?.includes(cat));
+        const rows = [];
+        if (mine.length) rows.push(toolItem(mine[0], mine[0].tool_id === recs[0]?.tool_id));
+        else rows.push(el('div', { class: 'empty', style: 'text-align:left' }, S.review ? 'Nothing can be shown until the catalogue is clinician-reviewed.' : 'No tool has passed the safety checks for this yet.', el('br'), el('button', { class: 'link', text: 'Answer a check-in to open some up', onclick: () => { S.learnTab = 'checkins'; tab('learn'); } })));
+        if (guide) rows.push(guideRow(guide));
+        if (video) rows.push(videoNode(video, videoState(video, ids), true));
+        if (art) rows.push(el('div', { class: 'alist' }, articleRow(art)));
+        return el('div', { class: 'sec' }, el('h2', { text: T.tasks[gid].label }), ...rows);
+      };
+      if (goals.length) {
+        box.append(...showGoals.map(goalSection));
+        if (goals.length > 3) box.append(el('button', { class: 'btn ghost', text: S.exploreAll ? 'Show fewer goals' : `Show all ${goals.length} goals`, onclick: () => { S.exploreAll = !S.exploreAll; draw(); } }));
+      } else {
+        box.append(el('div', { class: 'sec' }, el('h2', { text: 'Start here' }), articleRow(ARTICLES[0]), guideRow(GUIDES.find((g) => g.id === 'g_routine')), el('button', { class: 'btn', text: 'Choose what you want to do', onclick: () => go('p_goals') })));
+      }
+      box.append(el('button', { class: 'link', style: 'align-self:flex-start', text: 'Browse the full library in Learn', onclick: () => tab('learn') }));
     };
     v.append(searchBox(S.text, (t) => { S.text = t; draw(); }), box); draw();
   },
