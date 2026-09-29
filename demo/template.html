@@ -119,6 +119,18 @@ select.sel{width:100%;font:inherit;color:var(--ink);background:var(--surface);bo
 .toggle{flex:none;width:50px;height:30px;border-radius:15px;border:0;background:var(--line);position:relative;cursor:pointer}
 .toggle::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .15s}
 .toggle[aria-pressed=true]{background:var(--accent)} .toggle[aria-pressed=true]::after{transform:translateX(20px)}
+.tabs[hidden]{display:none}
+.ob-head{display:flex;align-items:center;gap:12px}
+.progress{flex:1;height:6px;border-radius:9px;background:var(--surface);overflow:hidden}.progress i{display:block;height:100%;background:var(--accent);border-radius:9px;transition:width .2s}
+.foot{position:sticky;bottom:-24px;margin:auto -20px -24px;padding:14px 20px 22px;background:linear-gradient(rgba(255,255,255,0),#fff 28%);display:flex;flex-direction:column;gap:8px;margin-top:auto}
+.btn.wide{width:100%;padding:15px 20px;font-size:16px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.big-h{font-size:30px}
+.pt{display:flex;gap:12px;align-items:flex-start}
+.pt i{flex:none;width:32px;height:32px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-style:normal;font-weight:700}
+.legend{display:grid;grid-template-columns:1.5fr repeat(5,1fr);gap:4px;font-size:11px;color:var(--muted);text-align:center;line-height:1.15}
+.savebtn{align-self:flex-start}
+textarea.sum{width:100%;min-height:340px;font:12px/1.5 var(--f-mono);color:var(--ink);background:var(--surface);border:0;border-radius:16px;padding:14px;resize:vertical}
 </style>
 
 <div class="stage">
@@ -137,7 +149,7 @@ __ENGINE__
 const DATA = __DATA__;
 </script>
 <script>
-const T = DATA.taxonomy, TOOLS = DATA.tools, PROFILES = DATA.profiles;
+const T = DATA.taxonomy, TOOLS = DATA.tools, EXAMPLES = DATA.profiles;
 const $ = (id) => document.getElementById(id);
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const el = (tag, attrs = {}, ...kids) => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (v == null || v === false) continue; if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else if (k === 'html') n.innerHTML = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v === true ? '' : v); } for (const c of kids.flat()) if (c != null) n.append(c); return n; };
@@ -145,15 +157,27 @@ const CAT = Object.fromEntries(T.categories.map((c) => [c.id, c]));
 const FEATURED_COLOR = '#F4A6A0';
 const dark = (hex) => { const n = parseInt(hex.slice(1), 16); return 0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255) < 140; };
 const onColor = (hex) => (dark(hex) ? '#FFFFFF' : '#1B2235');
-const S = { key: 'post_stroke_left_hemiparesis', profile: null, review: false, stack: [{ page: 'home' }], cat: null, chips: [], text: '', task: null };
-
+const CHEV = '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
+const CHEV_S = CHEV.replace('<svg', '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"');
 const ICON = {
   home: '<path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',
   explore: '<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>',
   safety: '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2.2 2.2L15.5 10"/>',
   profile: '<circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.4 7-5.4s6.2 1.8 7 5.4"/>',
 };
-const CHEV = '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
+
+// ---------- state + on-device storage (this browser only; nothing is sent anywhere)
+const LS = 'peo.app.v1';
+const blank = () => ({ person: { label: 'My profile', capacities: {}, risk_flags: [], risk_screening_complete: false, tech_literacy: [], budget_band: 3 }, environment: { confirmed_tags: [] }, occupation: { goals: [] } });
+const S = { profile: blank(), saved: [], onboarded: false, review: false, step: 0, stack: [{ page: 'onboard' }], cat: null, chips: [], text: '', task: null, confirmReset: false };
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(LS) || 'null');
+    if (d && d.profile) { validateProfile(d.profile, T); S.profile = d.profile; S.saved = (d.saved || []).filter((id) => TOOLS.some((t) => t.id === id)); S.onboarded = !!d.onboarded; S.review = !!d.review; S.step = d.step || 0; }
+  } catch { S.profile = blank(); }
+  S.stack = [{ page: S.onboarded ? 'home' : 'onboard' }];
+}
+function persist() { try { localStorage.setItem(LS, JSON.stringify({ profile: S.profile, saved: S.saved, onboarded: S.onboarded, review: S.review, step: S.step })); } catch {} }
 
 function run(query) {
   const p = clone(S.profile); p.occupation.query = query;
@@ -167,176 +191,41 @@ function tab(name) { S.stack = [{ page: name }]; render(); }
 function go(page, arg) { S.stack.push({ page, arg }); render(); }
 function back() { if (S.stack.length > 1) S.stack.pop(); render(); }
 function exploreWith(f) { S.cat = f.cat ?? null; S.chips = f.chips ?? []; S.text = f.text ?? ''; S.task = f.task ?? null; tab('explore'); }
-
-const TITLES = { tool: 'Tool', p_goals: 'What I want to do', p_caps: 'Abilities', p_risk: 'Risk screening', p_tech: 'Tech and budget', p_env: 'My home', p_settings: 'Settings' };
+const TITLES = { tool: '', p_goals: 'What I want to do', p_caps: 'Abilities', p_risk: 'Risk screening', p_tech: 'Tech and budget', p_env: 'My home', p_settings: 'Settings', summary: 'Summary for my therapist' };
 function render() {
-  const cur = S.stack[S.stack.length - 1], sub = S.stack.length > 1;
-  $('bar').hidden = !sub; $('barTitle').textContent = sub ? (cur.page === 'tool' ? '' : TITLES[cur.page]) : '';
-  const view = $('view'); view.replaceChildren(); view.className = 'page';
-  void view.offsetWidth; view.className = 'page';
+  const cur = S.stack[S.stack.length - 1], onb = cur.page === 'onboard', sub = S.stack.length > 1;
+  $('bar').hidden = !sub; $('barTitle').textContent = sub ? TITLES[cur.page] ?? '' : '';
+  $('tabs').hidden = onb;
+  const view = $('view'); view.replaceChildren(); view.className = ''; void view.offsetWidth; view.className = 'page';
   PAGES[cur.page](view, cur.arg);
   view.scrollTop = 0;
-  const base = S.stack[0].page;
-  const shield = badgeCount();
+  const base = S.stack[0].page, n = onb ? 0 : badgeCount();
   $('tabs').replaceChildren(...TABS.map(([id, label]) => el('button', { class: 'tab', 'aria-current': base === id ? 'page' : null, onclick: () => tab(id) },
-    el('span', { html: `<svg viewBox="0 0 24 24">${ICON[id]}</svg>` }), label, id === 'safety' && shield ? el('span', { class: 'badge', text: String(shield) }) : null)));
+    el('span', { html: `<svg viewBox="0 0 24 24">${ICON[id]}</svg>` }), label, id === 'safety' && n ? el('span', { class: 'badge', text: String(n) }) : null)));
+  persist();
 }
 function badgeCount() { try { return run({}).excluded.length; } catch { return 0; } }
 $('back').addEventListener('click', back);
+function refreshChrome() {
+  persist();
+  const t = [...document.querySelectorAll('.tab')][2]; if (!t) return;
+  t.querySelector('.badge')?.remove(); const n = badgeCount(); if (n) t.append(el('span', { class: 'badge', text: String(n) }));
+}
 
 // ---------- shared pieces
-function catCard(label, sub, color, onclick) {
-  return el('button', { class: 'card', style: `background:${color};color:${onColor(color)}`, onclick }, el('b', { text: label }), el('span', { text: sub }));
-}
+function catCard(label, sub, color, onclick) { return el('button', { class: 'card', style: `background:${color};color:${onColor(color)}`, onclick }, el('b', { text: label }), el('span', { text: sub })); }
 function toolItem(r, best) {
   const color = CAT[r.category].color;
   return el('button', { class: 'item', onclick: () => go('tool', r.tool_id) },
     el('div', { class: 'tile', style: `background:${color}` }),
     el('div', { class: 'txt' }, el('b', { text: r.name }), el('span', { text: r.summary }),
-      el('div', { class: 'row2', style: 'margin-top:4px' }, best ? el('span', { class: 'tag best', text: 'Best match' }) : null,
-        el('span', { class: 'tag', text: CAT[r.category].label }), r.hazard_severity !== 'none' && r.hazard_severity !== 'low' ? el('span', { class: 'tag sev-' + r.hazard_severity, text: 'take care' }) : null)));
+      el('div', { class: 'row2', style: 'margin-top:4px' }, best ? el('span', { class: 'tag best', text: 'Best match' }) : null, S.saved.includes(r.tool_id) ? el('span', { class: 'tag best', text: 'Saved' }) : null,
+        el('span', { class: 'tag', text: CAT[r.category].label }), r.hazard_severity === 'moderate' || r.hazard_severity === 'high' ? el('span', { class: 'tag sev-' + r.hazard_severity, text: 'take care' }) : null)));
 }
-const searchBox = (value, oninput, autofocus) => {
-  const input = el('input', { type: 'search', placeholder: 'Search tools and tasks', value, 'aria-label': 'Search', oninput: (e) => oninput(e.target.value) });
-  return el('label', { class: 'search' }, el('span', { html: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>' }), input);
-};
-const modeNotice = () => el('button', { class: 'notice' + (S.review ? '' : ''), onclick: () => go('p_settings') },
-  el('span', { text: S.review ? 'Production mode. Every catalogue entry is an unreviewed draft, so nothing can be shown.' : 'Demo catalogue. Entries are unreviewed drafts and thresholds are illustrative, not clinical advice.' }), el('span', { html: CHEV.replace('<svg', '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"') }));
-
-// ---------- pages
-const PAGES = {
-  home(v) {
-    const all = run({}), goals = S.profile.occupation.goals;
-    v.append(el('div', { class: 'head' }, el('div', { class: 'label', text: S.profile.person.label }), el('h1', { text: 'What would you like to make easier?' })));
-    v.append(searchBox('', (t) => { exploreWith({ text: t }); }));
-    if (goals.length) v.append(el('div', { class: 'chips' }, ...goals.map((g) => el('button', { class: 'chip', onclick: () => exploreWith({ task: g }), text: T.tasks[g].label }))));
-    v.append(modeNotice());
-    const cards = el('div', { class: 'cards' });
-    if (all.recommendations.length) cards.append(catCard('Best matches for you', `${all.recommendations.length} safe option${all.recommendations.length === 1 ? '' : 's'}`, FEATURED_COLOR, () => exploreWith({})));
-    for (const c of all.browse.categories) cards.append(catCard(c.label, `${c.count} safe option${c.count === 1 ? '' : 's'}`, c.color, () => exploreWith({ cat: c.id })));
-    if (!all.recommendations.length) cards.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'No tool passed every safety check for these goals. See Safety to find out why and what to confirm.' }));
-    v.append(cards);
-    if (all.excluded.length) v.append(el('button', { class: 'notice safe', onclick: () => tab('safety') }, el('span', { text: `${all.excluded.length} tool${all.excluded.length === 1 ? ' is' : 's are'} kept out of your results for safety. See why.` }), el('span', { html: CHEV.replace('<svg', '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"') })));
-  },
-
-  explore(v) {
-    const draw = () => {
-      list.replaceChildren();
-      const cur = run({ category: S.cat, chips: S.chips, text: S.text });
-      let recs = cur.recommendations; if (S.task) recs = recs.filter((r) => r.addresses.includes(S.task));
-      const chipsBox = el('div', { class: 'chips' });
-      for (const c of cur.browse.chips) chipsBox.append(el('button', { class: 'chip', 'aria-pressed': String(S.chips.includes(c.id)), text: `${c.label} · ${c.count}`, onclick: () => { const i = S.chips.indexOf(c.id); i < 0 ? S.chips.push(c.id) : S.chips.splice(i, 1); draw(); } }));
-      const active = el('div', { class: 'row2' });
-      if (S.cat) active.append(el('button', { class: 'chip', 'aria-pressed': 'true', text: CAT[S.cat].label + '  ×', onclick: () => { S.cat = null; draw(); } }));
-      if (S.task) active.append(el('button', { class: 'chip', 'aria-pressed': 'true', text: T.tasks[S.task].label + '  ×', onclick: () => { S.task = null; draw(); } }));
-      list.append(chipsBox); if (active.children.length) list.append(active);
-      if (!recs.length) list.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'No safe tool matches. Clear a filter, or open Safety to see what is blocking.' }));
-      else list.append(el('div', { class: 'list' }, ...recs.map((r, i) => toolItem(r, i === 0 && !S.text))));
-    };
-    const list = el('div', { class: 'sec' });
-    v.append(el('div', { class: 'head' }, el('h1', { text: 'Explore' }), el('p', { text: 'Only tools that passed every safety check are listed.' })));
-    v.append(searchBox(S.text, (t) => { S.text = t; draw(); }), list); draw();
-  },
-
-  tool(v, id) {
-    const t = toolOf(id), profile = S.profile, caps = profile.person.capacities;
-    const r = run({}).recommendations.find((x) => x.tool_id === id);
-    const color = CAT[t.category].color;
-    v.append(el('div', { class: 'hero', style: `background:${color};color:${onColor(color)}` }, el('span', { class: 'label', style: 'color:inherit;opacity:.8', text: `${CAT[t.category].label} · ${t.kind === 'device' ? 'Device' : t.kind === 'digital' ? 'Digital' : 'Everyday workaround'}` }), el('h1', { text: t.name })));
-    v.append(el('p', { style: 'margin:0', text: t.summary }));
-    v.append(el('div', { class: 'sec' }, el('h3', { text: 'Helps you' }), el('div', { class: 'row2' }, ...t.addresses.map((a) => el('span', { class: 'tag', text: T.tasks[a].label })))));
-    const checks = [];
-    for (const [dim, raw] of Object.entries(t.demands)) { const min = typeof raw === 'number' ? raw : raw.min; checks.push(`${T.dimensions[dim].label}: you are at ${caps[dim]}, this needs ${min}${typeof raw === 'object' && raw.critical && t.hazards.severity === 'high' ? ' plus a safety margin' : ''}`); }
-    for (const tag of t.environment.requires_all) checks.push(`Home: ${T.environment_tags[tag].label}`);
-    for (const tag of t.environment.forbids_any) checks.push(`Home has no: ${T.environment_tags[tag].label.toLowerCase()}`);
-    for (const tag of [...t.tech.daily_use, ...t.tech.setup]) checks.push(`Tech: ${T.tech_tags[tag]}`);
-    v.append(el('div', { class: 'box' }, el('h3', { text: 'Why it fits you' }), ...(checks.length ? checks : ['No ability, home or tech requirements.']).map((c) => el('div', { class: 'check' }, el('i', { text: '✓' }), el('span', { text: c })))));
-    if (r && r.cautions.length) v.append(el('div', { class: 'box' }, el('h3', { text: 'Take care' }), ...r.cautions.map((c) => el('div', { class: 'check warn' }, el('i', { text: '!' }), el('span', { text: c })))));
-    if (r) {
-      const names = { headroom: 'Ability margin', coverage: 'Covers your goals', simplicity: 'Simplicity', hazard: 'Low hazard', evidence: 'Evidence', cost: 'Low cost' };
-      v.append(el('div', { class: 'box' }, el('div', { class: 'linkrow' }, el('h3', { text: 'How it ranked' }), el('span', { class: 'mono', text: r.score.toFixed(2) })),
-        ...Object.entries(r.breakdown).map(([k, val]) => el('div', { class: 'meter' }, el('span', { text: names[k] }), el('div', { class: 'bar2' }, el('i', { style: `width:${Math.round(val * 100)}%` })), el('span', { class: 'mono', text: val.toFixed(2) }))),
-        el('div', { class: 'muted', style: 'font-size:12px', text: 'Ranking only orders tools that already passed every safety check. It can never rescue a blocked one.' })));
-    } else v.append(el('div', { class: 'empty', text: 'This tool no longer passes the safety checks for the current profile.' }));
-    v.append(el('div', { class: 'muted', style: 'font-size:12px', text: `Catalogue status: ${t.safety_review.status}. Decision support only; not a substitute for an occupational therapist.` }));
-  },
-
-  safety(v) {
-    const all = run({});
-    const hard = all.excluded.filter((e) => e.failures.some((f) => f.kind === 'hard'));
-    const info = all.excluded.filter((e) => !hard.includes(e) && e.could_unlock);
-    const other = all.excluded.filter((e) => !hard.includes(e) && !info.includes(e));
-    v.append(el('div', { class: 'head' }, el('h1', { text: 'Kept out for your safety' }), el('p', { text: `${all.excluded.length} of ${all.meta.evaluated} tools were removed. Anything not confirmed counts as unsafe.` })));
-    const gaps = all.assessment_gaps.filter((g) => g.could_unlock);
-    if (gaps.length) v.append(el('div', { class: 'sec' }, el('h3', { text: 'Answer to unlock' }), ...gaps.map(gapRow)));
-    const group = (title, list, note) => list.length ? el('div', { class: 'sec' }, el('h3', { text: title }), note ? el('div', { class: 'muted', style: 'font-size:13px', text: note }) : null,
-      ...list.map((e) => el('div', { class: 'blocked' }, el('b', { text: e.name }), ...e.failures.map((f) => el('div', { class: 'reason' }, el('span', { class: 'tag ' + f.kind, text: f.code }), el('span', { text: f.detail })))))) : null;
-    v.append(group('Not safe for you', hard, 'A limit, a risk flag or a home condition rules these out. Confirming more facts will not change this.'));
-    v.append(group('Waiting on information', info, 'Not recommended until the missing facts are confirmed.'));
-    v.append(group('Other', other));
-    if (!all.excluded.length) v.append(el('div', { class: 'empty', text: 'Nothing was removed for these goals.' }));
-  },
-
-  profile(v) {
-    const p = S.profile, dims = Object.keys(T.dimensions), assessed = dims.filter((d) => p.person.capacities[d] != null).length;
-    v.append(el('div', { class: 'head' }, el('h1', { text: 'Profile' }), el('p', { text: 'The person, the home and the goals the engine works from.' })));
-    const sel = el('select', { class: 'sel', 'aria-label': 'Example person', onchange: (e) => loadProfile(e.target.value) });
-    for (const [k, pr] of Object.entries(PROFILES)) sel.append(el('option', { value: k, text: pr.person.label }));
-    sel.append(el('option', { value: '__blank', text: 'Blank profile: nothing assessed' })); sel.value = S.key;
-    v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Example person' }), sel));
-    const row = (title, sub, page) => el('button', { class: 'rowlink', onclick: () => go(page) }, el('span', {}, el('b', { text: title }), el('small', { text: sub })), el('span', { html: CHEV }));
-    v.append(el('div', { class: 'rows' },
-      row('What I want to do', `${p.occupation.goals.length} of ${Object.keys(T.tasks).length} selected`, 'p_goals'),
-      row('Abilities', `${assessed} of ${dims.length} assessed`, 'p_caps'),
-      row('Risk screening', `${p.person.risk_flags.length} flag${p.person.risk_flags.length === 1 ? '' : 's'} · screening ${p.person.risk_screening_complete ? 'done' : 'not done'}`, 'p_risk'),
-      row('Tech and budget', `${p.person.tech_literacy.length} skills · ${T.budget_bands[p.person.budget_band ?? 3]}`, 'p_tech'),
-      row('My home', `${p.environment.confirmed_tags.length} facts confirmed`, 'p_env')));
-    v.append(el('div', { class: 'rows' }, row('Settings', S.review ? 'Production mode' : 'Demo mode', 'p_settings')));
-  },
-
-  p_goals(v) {
-    const g = S.profile.occupation.goals;
-    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Pick what you want to do. With none picked, every safe tool is shown.' }));
-    for (const c of T.categories) {
-      const tasks = Object.entries(T.tasks).filter(([, t]) => t.category === c.id);
-      v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: c.label }), el('div', { class: 'pills' }, ...tasks.map(([id, t]) => togglePill(t.label, g.includes(id), '', (on) => setIn(g, id, on))))));
-    }
-  },
-  p_caps(v) {
-    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'What you can do reliably and safely on a bad day. "?" means not assessed, and counts against a tool.' }));
-    v.append(el('div', { class: 'row2' }, ...['0 Unable', '1 Severe', '2 Moderate', '3 Mild', '4 Typical'].map((s) => el('span', { class: 'tag', text: s }))));
-    const groups = {}; for (const [d, m] of Object.entries(T.dimensions)) (groups[m.group] ??= []).push([d, m.label]);
-    for (const [grp, dims] of Object.entries(groups)) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: grp }), ...dims.map(([d, label]) => capRow(d, label))));
-  },
-  p_risk(v) {
-    const p = S.profile.person;
-    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Flags block tools that could hurt. Screening must be marked complete before any tool with a hazard is eligible.' }));
-    v.append(el('div', { class: 'pills' }, ...Object.entries(T.risk_flags).map(([f, label]) => togglePill(label, p.risk_flags.includes(f), 'risk', (on) => setIn(p.risk_flags, f, on)))));
-    v.append(switchRow('Risk screening completed', 'Confirm only after every flag has been asked about.', p.risk_screening_complete, (on) => { p.risk_screening_complete = on; }));
-  },
-  p_tech(v) {
-    const p = S.profile.person;
-    v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Skills I have' }), el('div', { class: 'pills' }, ...Object.entries(T.tech_tags).map(([t, label]) => togglePill(label, p.tech_literacy.includes(t), '', (on) => setIn(p.tech_literacy, t, on))))));
-    const sel = el('select', { class: 'sel', 'aria-label': 'Budget', onchange: (e) => { p.budget_band = Number(e.target.value); refreshChrome(); } });
-    for (const [k, l] of Object.entries(T.budget_bands)) sel.append(el('option', { value: k, text: l })); sel.value = String(p.budget_band ?? 3);
-    v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Budget per tool' }), sel));
-    v.append(switchRow('Prefer low-tech options', 'Ranks simple tools higher. Never affects safety.', !!p.preferences?.prefer_low_tech, (on) => { p.preferences = { ...(p.preferences ?? {}), prefer_low_tech: on }; }));
-  },
-  p_env(v) {
-    const tags = S.profile.environment.confirmed_tags, blockers = new Set(TOOLS.flatMap((t) => t.environment.forbids_any));
-    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Only switch on what is true. Anything left off is treated as not supported. Red tags block some tools.' }));
-    const domains = {}; for (const [t, m] of Object.entries(T.environment_tags)) (domains[m.domain] ??= []).push([t, m.label]);
-    for (const [dom, list] of Object.entries(domains)) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: dom }), el('div', { class: 'pills' }, ...list.map(([t, label]) => togglePill(label, tags.includes(t), 'env' + (blockers.has(t) ? ' forb' : ''), (on) => setIn(tags, t, on))))));
-  },
-  p_settings(v) {
-    v.append(switchRow('Production mode', 'Only clinician-reviewed entries may be recommended. All 18 seed entries are drafts, so the app shows nothing.', S.review, (on) => { S.review = on; }));
-    v.append(el('div', { class: 'box' }, el('h3', { text: 'About' }), el('div', { class: 'muted', text: 'Matches people to assistive tools and everyday workarounds using the Person-Environment-Occupation model. It supports compensation and adaptation, not rehabilitation. Thresholds here are engineering placeholders. Decision support only.' })));
-    v.append(el('button', { class: 'btn ghost', text: 'Reset this example', onclick: () => { loadProfile(S.key); S.stack = [{ page: 'profile' }]; render(); } }));
-  },
-};
+const searchBox = (value, oninput) => el('label', { class: 'search' }, el('span', { html: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>' }), el('input', { type: 'search', placeholder: 'Search tools and tasks', value, 'aria-label': 'Search', oninput: (e) => oninput(e.target.value) }));
+const previewNotice = () => el('button', { class: 'notice', onclick: () => go('p_settings') }, el('span', { text: S.review ? 'Clinician review is required, and no catalogue entry has been reviewed yet, so nothing can be shown.' : 'Preview catalogue: tool entries have not been reviewed by a clinician yet.' }), el('span', { html: CHEV_S }));
 
 // ---------- controls
-function refreshChrome() { const base = S.stack[0].page; const n = badgeCount(); const b = document.querySelector('.tab .badge'); const t = [...document.querySelectorAll('.tab')][2]; if (t) { b?.remove(); if (n) t.append(el('span', { class: 'badge', text: String(n) })); } }
 function setIn(arr, v, on) { const i = arr.indexOf(v); if (on && i < 0) arr.push(v); if (!on && i >= 0) arr.splice(i, 1); refreshChrome(); }
 function togglePill(label, on, cls, set) {
   const b = el('button', { class: 'pill ' + cls, 'aria-pressed': String(on), text: label });
@@ -351,22 +240,233 @@ function switchRow(title, sub, on, set) {
 function capRow(dim, label) {
   const caps = S.profile.person.capacities, seg = el('div', { class: 'seg', role: 'group', 'aria-label': label });
   const sync = () => [...seg.children].forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.v === '' ? null : Number(b.dataset.v)) === (caps[dim] ?? null))));
-  for (const v of [null, 0, 1, 2, 3, 4]) { const b = el('button', { class: v === null ? 'na' : '', 'data-v': v === null ? '' : String(v), text: v === null ? '?' : String(v), onclick: () => { caps[dim] = v; sync(); refreshChrome(); } }); seg.append(b); }
+  for (const v of [null, 0, 1, 2, 3, 4]) seg.append(el('button', { class: v === null ? 'na' : '', 'data-v': v === null ? '' : String(v), text: v === null ? 'Not sure' : String(v), onclick: () => { caps[dim] = v; sync(); refreshChrome(); } }));
   sync();
   return el('div', { class: 'cap' }, el('span', { text: label }), seg);
 }
+const LEGEND = () => el('div', { class: 'legend' }, el('span'), ...['can’t', 'very hard', 'some difficulty', 'a little', 'no difficulty'].map((t) => el('span', { text: t })));
+const QUESTION = {
+  grip_strength: 'Gripping and holding things', fine_motor: 'Small movements, like buttons and pills', bilateral_hand_use: 'Using both hands together', reach_range: 'Reaching up and down',
+  balance: 'Balance, standing or sitting', transfer_ability: 'Getting up, sitting down, getting in and out', endurance: 'Stamina for daily tasks', tremor_control: 'Steady hands (4 = no tremor)',
+  vision: 'Seeing print and screens', hearing: 'Hearing alarms and voices', tactile_sensation: 'Feeling heat, cold and pain in the hands', working_memory: 'Holding things in mind',
+  sequencing: 'Doing steps in the right order', attention: 'Staying focused', initiation: 'Getting started on a task', problem_solving: 'Fixing things when they go wrong',
+  safety_judgment: 'Spotting danger', new_learning: 'Learning a new gadget or routine', speech_clarity: 'Being understood when speaking', literacy: 'Reading and writing',
+};
 function gapRow(g) {
-  const T2 = { SCREENING_INCOMPLETE: 'Finish the risk screening', CAPACITY_UNKNOWN: `Assess: ${T.dimensions[g.target]?.label}`, ENV_REQUIREMENT_UNCONFIRMED: `Is this true at home? ${T.environment_tags[g.target]?.label}`, SETUP_HELPER_UNAVAILABLE: 'Can someone set tools up for you?', TECH_UNCONFIRMED: `Can you do this? ${T.tech_tags[g.target]}` };
+  const label = { SCREENING_INCOMPLETE: 'Finish the risk screening', CAPACITY_UNKNOWN: `Assess: ${T.dimensions[g.target]?.label}`, ENV_REQUIREMENT_UNCONFIRMED: `Is this true at home? ${T.environment_tags[g.target]?.label}`, SETUP_HELPER_UNAVAILABLE: 'Can someone set tools up for you?', TECH_UNCONFIRMED: `Can you do this? ${T.tech_tags[g.target]}` };
   const apply = { SCREENING_INCOMPLETE: () => { S.profile.person.risk_screening_complete = true; }, ENV_REQUIREMENT_UNCONFIRMED: () => S.profile.environment.confirmed_tags.push(g.target), SETUP_HELPER_UNAVAILABLE: () => S.profile.environment.confirmed_tags.push('helper_available_for_setup'), TECH_UNCONFIRMED: () => S.profile.person.tech_literacy.push(g.target) }[g.code];
-  return el('div', { class: 'ask' }, el('div', {}, el('b', { text: T2[g.code] ?? g.code }), el('span', { text: `unlocks ${g.could_unlock} tool${g.could_unlock === 1 ? '' : 's'}` })),
+  return el('div', { class: 'ask' }, el('div', {}, el('b', { text: label[g.code] ?? g.code }), el('span', { text: `unlocks ${g.could_unlock} tool${g.could_unlock === 1 ? '' : 's'}` })),
     apply ? el('button', { class: 'btn', text: 'Yes', onclick: () => { apply(); render(); } }) : el('button', { class: 'btn ghost', text: 'Assess', onclick: () => go('p_caps') }));
 }
-function loadProfile(k) {
-  S.key = k; S.cat = null; S.chips = []; S.text = ''; S.task = null;
-  S.profile = k === '__blank'
-    ? { person: { label: 'Blank profile', capacities: {}, risk_flags: [], risk_screening_complete: false, tech_literacy: [], budget_band: 3 }, environment: { confirmed_tags: [] }, occupation: { goals: ['cut_food', 'take_medications', 'remember_appointments'] } }
-    : clone(PROFILES[k]);
-  render();
+
+// ---------- what the goals make relevant (so the setup only asks what matters)
+function relevant() {
+  const g = S.profile.occupation.goals, ts = TOOLS.filter((t) => t.addresses.some((a) => g.includes(a)));
+  const dims = new Set(), env = new Set(), tech = new Set();
+  for (const t of ts) {
+    Object.keys(t.demands).forEach((d) => dims.add(d)); t.supervised_if_below.forEach((s) => dims.add(s.dimension));
+    t.environment.requires_all.forEach((x) => env.add(x)); t.environment.forbids_any.forEach((x) => env.add(x));
+    [...t.tech.daily_use, ...t.tech.setup].forEach((x) => tech.add(x));
+    if (t.setup_requires_helper || t.tech.setup.length) env.add('helper_available_for_setup');
+    if (t.supervised_if_below.length) env.add('caregiver_present_during_use');
+  }
+  return { dims: Object.keys(T.dimensions).filter((d) => dims.has(d)), env: Object.keys(T.environment_tags).filter((x) => env.has(x)), tech: Object.keys(T.tech_tags).filter((x) => tech.has(x)) };
 }
-loadProfile(S.key);
+
+// ---------- summary for a therapist
+function summaryText() {
+  const p = S.profile, all = run({}), caps = p.person.capacities;
+  const assessed = Object.keys(T.dimensions).filter((d) => caps[d] != null), unassessed = Object.keys(T.dimensions).filter((d) => caps[d] == null);
+  const L = [];
+  L.push('ASSISTIVE TOOL MATCH SUMMARY', 'Decision support only. Not a clinical assessment. Catalogue entries have not been clinician-reviewed.', '');
+  L.push('GOALS', ...(p.occupation.goals.length ? p.occupation.goals.map((g) => `- ${T.tasks[g].label}`) : ['- none selected']), '');
+  L.push('SELF-REPORTED ABILITY (0 unable ... 4 no difficulty, on a bad day)', ...assessed.map((d) => `- ${T.dimensions[d].label}: ${caps[d]}`), unassessed.length ? `Not assessed: ${unassessed.map((d) => T.dimensions[d].label).join(', ')}` : '', '');
+  L.push('RISK FLAGS', ...(p.person.risk_flags.length ? p.person.risk_flags.map((f) => `- ${T.risk_flags[f]}`) : ['- none reported']), `Risk screening completed: ${p.person.risk_screening_complete ? 'yes' : 'NO (moderate and high hazard tools are held back)'}`, '');
+  L.push('HOME FACTS CONFIRMED', ...(p.environment.confirmed_tags.length ? p.environment.confirmed_tags.map((t) => `- ${T.environment_tags[t].label}`) : ['- none']), '');
+  L.push('TECH SKILLS', ...(p.person.tech_literacy.length ? p.person.tech_literacy.map((t) => `- ${T.tech_tags[t]}`) : ['- none']), '');
+  L.push('OPTIONS THAT PASSED EVERY SAFETY CHECK', ...(all.recommendations.length ? all.recommendations.flatMap((r) => [`- ${r.name} (${r.hazard_severity} hazard)`, ...r.cautions.map((c) => `    caution: ${c}`)]) : ['- none']), '');
+  L.push('KEPT OUT, WITH REASON', ...(all.excluded.length ? all.excluded.flatMap((e) => [`- ${e.name}`, ...e.failures.map((f) => `    ${f.code}: ${f.detail}`)]) : ['- none']));
+  return L.filter((x) => x !== undefined).join('\n');
+}
+
+// ---------- pages
+const STEPS = ['welcome', 'goals', 'abilities', 'risk', 'home', 'tech', 'done'];
+const PAGES = {
+  onboard(v) {
+    const step = STEPS[S.step], g = S.profile.occupation.goals, rel = relevant();
+    const next = el('button', { class: 'btn wide', text: 'Continue', onclick: () => { S.step++; render(); } });
+    const upd = () => { next.disabled = step === 'goals' && !g.length; };
+    v.append(el('div', { class: 'ob-head' }, S.step > 0 && step !== 'done' ? el('button', { class: 'iconbtn', 'aria-label': 'Back', onclick: () => { S.step--; render(); }, html: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>' }) : null,
+      el('div', { class: 'progress', role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(STEPS.length - 1), 'aria-valuenow': String(S.step) }, el('i', { style: `width:${Math.round((S.step / (STEPS.length - 1)) * 100)}%` }))));
+    const foot = el('div', { class: 'foot' }, next);
+    if (step === 'welcome') {
+      v.append(el('div', { class: 'head', style: 'margin-top:18px' }, el('h1', { class: 'big-h', text: 'Tools that are safe for you, not just popular.' }), el('p', { text: 'Answer a few questions. You get assistive tools and everyday workarounds that fit your body, your home and your tech.' })));
+      for (const [i, t, d] of [['1', 'Safety comes first', 'Anything we cannot confirm is safe for you is left out, and you see why.'], ['2', 'About 3 minutes', 'Only questions that matter for what you pick.'], ['3', 'Stays on this device', 'Your answers are saved in this browser only.']])
+        v.append(el('div', { class: 'pt' }, el('i', { text: i }), el('div', {}, el('b', { text: t }), el('div', { class: 'muted', text: d }))));
+      v.append(el('div', { class: 'muted', style: 'font-size:13px', text: 'Decision support, not medical advice. It does not replace an occupational therapist. Tool entries in this version have not been clinician-reviewed.' }));
+      next.textContent = 'Get started';
+    } else if (step === 'goals') {
+      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'What is hard right now?' }), el('p', { text: 'Pick everything that applies.' })));
+      for (const c of T.categories) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: c.label }), el('div', { class: 'pills' }, ...Object.entries(T.tasks).filter(([, t]) => t.category === c.id).map(([id, t]) => togglePill(t.label, g.includes(id), '', (on) => { setIn(g, id, on); upd(); })))));
+    } else if (step === 'abilities') {
+      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'How do these go, on a bad day?' }), el('p', { text: 'Answer for a bad day, not your best. If you are unsure, leave it: we then treat it as a limit.' })), LEGEND());
+      for (const d of rel.dims) v.append(capRow(d, QUESTION[d]));
+    } else if (step === 'risk') {
+      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'Does any of this apply?' }), el('p', { text: 'These rule tools out. Select all that apply.' })));
+      v.append(el('div', { class: 'pills' }, ...Object.entries(T.risk_flags).map(([f, label]) => togglePill(label, S.profile.person.risk_flags.includes(f), 'risk', (on) => setIn(S.profile.person.risk_flags, f, on)))));
+      v.append(switchRow('I have read the whole list', 'Required before tools with any hazard can be shown.', S.profile.person.risk_screening_complete, (on) => { S.profile.person.risk_screening_complete = on; }));
+    } else if (step === 'home') {
+      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'What is true at home?' }), el('p', { text: 'Switch on only what is definitely true. Anything left off is treated as not supported.' })));
+      const blockers = new Set(TOOLS.flatMap((t) => t.environment.forbids_any));
+      if (!rel.env.length) v.append(el('div', { class: 'empty', text: 'Nothing about your home is needed for the tasks you picked.' }));
+      v.append(el('div', { class: 'pills' }, ...rel.env.map((t) => togglePill(T.environment_tags[t].label, S.profile.environment.confirmed_tags.includes(t), 'env' + (blockers.has(t) ? ' forb' : ''), (on) => setIn(S.profile.environment.confirmed_tags, t, on)))));
+    } else if (step === 'tech') {
+      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'Tech and budget' })));
+      if (rel.tech.length) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'What can you do yourself?' }), el('div', { class: 'pills' }, ...rel.tech.map((t) => togglePill(T.tech_tags[t], S.profile.person.tech_literacy.includes(t), '', (on) => setIn(S.profile.person.tech_literacy, t, on))))));
+      const sel = el('select', { class: 'sel', 'aria-label': 'Budget', onchange: (e) => { S.profile.person.budget_band = Number(e.target.value); refreshChrome(); } });
+      for (const [k, l] of Object.entries(T.budget_bands)) sel.append(el('option', { value: k, text: l })); sel.value = String(S.profile.person.budget_band ?? 3);
+      v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Most you would spend on one tool' }), sel));
+      next.textContent = 'See my options';
+    } else {
+      const r = run({});
+      v.append(el('div', { class: 'head', style: 'margin-top:18px' }, el('h1', { class: 'big-h', text: r.recommendations.length ? `${r.recommendations.length} safe option${r.recommendations.length === 1 ? '' : 's'} for you.` : 'No safe match yet.' }),
+        el('p', { text: r.excluded.length ? `${r.excluded.length} tool${r.excluded.length === 1 ? ' was' : 's were'} kept out for safety, each with a reason. Some could open up if you confirm more.` : 'Nothing was kept out.' })));
+      if (!r.recommendations.length && S.review) v.append(el('div', { class: 'empty', text: 'Clinician review is required and no entry has been reviewed yet.' }));
+      next.textContent = 'Open my options'; next.onclick = () => { S.onboarded = true; tab('home'); };
+      foot.append(el('button', { class: 'btn ghost wide', text: 'See what was kept out', onclick: () => { S.onboarded = true; tab('safety'); } }));
+    }
+    upd(); v.append(foot);
+  },
+
+  home(v) {
+    const all = run({}), g = S.profile.occupation.goals;
+    v.append(el('div', { class: 'head' }, el('div', { class: 'label', text: 'Your options' }), el('h1', { text: 'What would you like to make easier?' })));
+    v.append(searchBox('', (t) => exploreWith({ text: t })));
+    v.append(g.length ? el('div', { class: 'chips' }, ...g.map((x) => el('button', { class: 'chip', onclick: () => exploreWith({ task: x }), text: T.tasks[x].label })), el('button', { class: 'chip', onclick: () => go('p_goals'), text: '+ Edit' })) : el('button', { class: 'notice safe', onclick: () => go('p_goals') }, el('span', { text: 'Choose what you want to do to get matched.' }), el('span', { html: CHEV_S })));
+    v.append(previewNotice());
+    const savedOk = all.recommendations.filter((r) => S.saved.includes(r.tool_id)), savedGone = S.saved.length - savedOk.length;
+    if (S.saved.length) v.append(el('div', { class: 'sec' }, el('h3', { text: 'My toolkit' }), el('div', { class: 'list' }, ...savedOk.map((r) => toolItem(r, false))),
+      savedGone ? el('button', { class: 'notice', onclick: () => tab('safety') }, el('span', { text: `${savedGone} saved tool${savedGone === 1 ? ' no longer passes' : 's no longer pass'} the safety checks for your current answers.` }), el('span', { html: CHEV_S })) : null));
+    const cards = el('div', { class: 'cards' });
+    if (all.recommendations.length) cards.append(catCard('Best matches for you', `${all.recommendations.length} safe option${all.recommendations.length === 1 ? '' : 's'}`, FEATURED_COLOR, () => exploreWith({})));
+    for (const c of all.browse.categories) cards.append(catCard(c.label, `${c.count} safe option${c.count === 1 ? '' : 's'}`, c.color, () => exploreWith({ cat: c.id })));
+    if (!all.recommendations.length) cards.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'No tool passed every safety check yet. Open Safety to see why and what you can confirm.' }));
+    v.append(cards);
+    if (all.excluded.length) v.append(el('button', { class: 'notice safe', onclick: () => tab('safety') }, el('span', { text: `${all.excluded.length} tool${all.excluded.length === 1 ? ' is' : 's are'} kept out of your results for safety. See why.` }), el('span', { html: CHEV_S })));
+  },
+
+  explore(v) {
+    const list = el('div', { class: 'sec' });
+    const draw = () => {
+      list.replaceChildren();
+      const cur = run({ category: S.cat, chips: S.chips, text: S.text });
+      let recs = cur.recommendations; if (S.task) recs = recs.filter((r) => r.addresses.includes(S.task));
+      const chipsBox = el('div', { class: 'chips' }, ...cur.browse.chips.map((c) => el('button', { class: 'chip', 'aria-pressed': String(S.chips.includes(c.id)), text: `${c.label} · ${c.count}`, onclick: () => { const i = S.chips.indexOf(c.id); i < 0 ? S.chips.push(c.id) : S.chips.splice(i, 1); draw(); } })));
+      const active = el('div', { class: 'row2' });
+      if (S.cat) active.append(el('button', { class: 'chip', 'aria-pressed': 'true', text: CAT[S.cat].label + '  ×', onclick: () => { S.cat = null; draw(); } }));
+      if (S.task) active.append(el('button', { class: 'chip', 'aria-pressed': 'true', text: T.tasks[S.task].label + '  ×', onclick: () => { S.task = null; draw(); } }));
+      list.append(chipsBox); if (active.children.length) list.append(active);
+      if (!recs.length) list.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'No safe tool matches. Clear a filter, or open Safety to see what is blocking.' }));
+      else list.append(el('div', { class: 'list' }, ...recs.map((r, i) => toolItem(r, i === 0 && !S.text))));
+    };
+    v.append(el('div', { class: 'head' }, el('h1', { text: 'Explore' }), el('p', { text: 'Only tools that passed every safety check are listed.' })), searchBox(S.text, (t) => { S.text = t; draw(); }), list); draw();
+  },
+
+  tool(v, id) {
+    const t = toolOf(id), caps = S.profile.person.capacities, r = run({}).recommendations.find((x) => x.tool_id === id), color = CAT[t.category].color;
+    v.append(el('div', { class: 'hero', style: `background:${color};color:${onColor(color)}` }, el('span', { class: 'label', style: 'color:inherit;opacity:.8', text: `${CAT[t.category].label} · ${t.kind === 'device' ? 'Device' : t.kind === 'digital' ? 'Digital' : 'Everyday workaround'}` }), el('h1', { text: t.name })));
+    if (r) {
+      const btn = el('button', { class: 'btn savebtn' + (S.saved.includes(id) ? ' ghost' : ''), text: S.saved.includes(id) ? 'Saved to my toolkit' : 'Save to my toolkit' });
+      btn.addEventListener('click', () => { setIn(S.saved, id, !S.saved.includes(id)); btn.textContent = S.saved.includes(id) ? 'Saved to my toolkit' : 'Save to my toolkit'; btn.classList.toggle('ghost', S.saved.includes(id)); });
+      v.append(btn);
+    }
+    v.append(el('p', { style: 'margin:0', text: t.summary }));
+    v.append(el('div', { class: 'sec' }, el('h3', { text: 'Helps you' }), el('div', { class: 'row2' }, ...t.addresses.map((a) => el('span', { class: 'tag', text: T.tasks[a].label })))));
+    const checks = [];
+    for (const [dim, raw] of Object.entries(t.demands)) { const min = typeof raw === 'number' ? raw : raw.min; checks.push(`${T.dimensions[dim].label}: you are at ${caps[dim] ?? 'not assessed'}, this needs ${min}${typeof raw === 'object' && raw.critical && t.hazards.severity === 'high' ? ' plus a safety margin' : ''}`); }
+    for (const tag of t.environment.requires_all) checks.push(`Home: ${T.environment_tags[tag].label}`);
+    for (const tag of t.environment.forbids_any) checks.push(`Home has no: ${T.environment_tags[tag].label.toLowerCase()}`);
+    for (const tag of [...t.tech.daily_use, ...t.tech.setup]) checks.push(`Tech: ${T.tech_tags[tag]}`);
+    v.append(el('div', { class: 'box' }, el('h3', { text: 'Why it fits you' }), ...(checks.length ? checks : ['No ability, home or tech requirements.']).map((c) => el('div', { class: 'check' }, el('i', { text: '✓' }), el('span', { text: c })))));
+    if (r && r.cautions.length) v.append(el('div', { class: 'box' }, el('h3', { text: 'Take care' }), ...r.cautions.map((c) => el('div', { class: 'check warn' }, el('i', { text: '!' }), el('span', { text: c })))));
+    if (r) {
+      const names = { headroom: 'Ability margin', coverage: 'Covers your goals', simplicity: 'Simplicity', hazard: 'Low hazard', evidence: 'Evidence', cost: 'Low cost' };
+      v.append(el('div', { class: 'box' }, el('div', { class: 'linkrow' }, el('h3', { text: 'How it ranked' }), el('span', { class: 'mono', text: r.score.toFixed(2) })),
+        ...Object.entries(r.breakdown).map(([k, val]) => el('div', { class: 'meter' }, el('span', { text: names[k] }), el('div', { class: 'bar2' }, el('i', { style: `width:${Math.round(val * 100)}%` })), el('span', { class: 'mono', text: val.toFixed(2) }))),
+        el('div', { class: 'muted', style: 'font-size:12px', text: 'Ranking only orders tools that already passed every safety check. It can never bring back a blocked one.' })));
+    } else v.append(el('div', { class: 'empty', text: 'This tool no longer passes the safety checks for your current answers.' }));
+    v.append(el('div', { class: 'muted', style: 'font-size:12px', text: `Catalogue status: ${t.safety_review.status}. Decision support only; not a substitute for an occupational therapist.` }));
+  },
+
+  safety(v) {
+    const all = run({}), hard = all.excluded.filter((e) => e.failures.some((f) => f.kind === 'hard')), info = all.excluded.filter((e) => !hard.includes(e) && e.could_unlock), other = all.excluded.filter((e) => !hard.includes(e) && !info.includes(e));
+    v.append(el('div', { class: 'head' }, el('h1', { text: 'Kept out for your safety' }), el('p', { text: `${all.excluded.length} of ${all.meta.evaluated} tools were removed. Anything not confirmed counts as unsafe.` })));
+    const gaps = all.assessment_gaps.filter((x) => x.could_unlock);
+    if (gaps.length) v.append(el('div', { class: 'sec' }, el('h3', { text: 'Answer to unlock' }), ...gaps.map(gapRow)));
+    const group = (title, list, note) => list.length ? el('div', { class: 'sec' }, el('h3', { text: title }), note ? el('div', { class: 'muted', style: 'font-size:13px', text: note }) : null,
+      ...list.map((e) => el('div', { class: 'blocked' }, el('b', { text: e.name }), ...e.failures.map((f) => el('div', { class: 'reason' }, el('span', { class: 'tag ' + f.kind, text: f.code }), el('span', { text: f.detail })))))) : null;
+    v.append(group('Not safe for you', hard, 'A limit, a risk flag or a home condition rules these out. Confirming more facts will not change this.'), group('Waiting on information', info, 'Not recommended until the missing facts are confirmed.'), group('Other', other));
+    if (!all.excluded.length) v.append(el('div', { class: 'empty', text: 'Nothing was removed for these goals.' }));
+  },
+
+  profile(v) {
+    const p = S.profile, dims = Object.keys(T.dimensions), assessed = dims.filter((d) => p.person.capacities[d] != null).length;
+    v.append(el('div', { class: 'head' }, el('h1', { text: 'Profile' }), el('p', { text: 'Saved on this device only. Change anything and your options update.' })));
+    const row = (title, sub, page) => el('button', { class: 'rowlink', onclick: () => go(page) }, el('span', {}, el('b', { text: title }), el('small', { text: sub })), el('span', { html: CHEV }));
+    v.append(el('div', { class: 'rows' },
+      row('What I want to do', `${p.occupation.goals.length} of ${Object.keys(T.tasks).length} selected`, 'p_goals'),
+      row('Abilities', `${assessed} of ${dims.length} assessed`, 'p_caps'),
+      row('Risk screening', `${p.person.risk_flags.length} flag${p.person.risk_flags.length === 1 ? '' : 's'} · screening ${p.person.risk_screening_complete ? 'done' : 'not done'}`, 'p_risk'),
+      row('Tech and budget', `${p.person.tech_literacy.length} skills · ${T.budget_bands[p.person.budget_band ?? 3]}`, 'p_tech'),
+      row('My home', `${p.environment.confirmed_tags.length} facts confirmed`, 'p_env')));
+    v.append(el('div', { class: 'rows' }, row('Summary for my therapist', 'A copyable text of your answers and results', 'summary'), row('Settings', S.review ? 'Clinician review required' : 'Preview catalogue', 'p_settings')));
+  },
+
+  summary(v) {
+    const text = summaryText(), ta = el('textarea', { class: 'sum', readonly: true, 'aria-label': 'Summary text' }); ta.value = text;
+    const btn = el('button', { class: 'btn', text: 'Copy summary' });
+    btn.addEventListener('click', async () => { try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied'; } catch { ta.focus(); ta.select(); btn.textContent = 'Now copy the selected text'; } });
+    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Share this with your occupational therapist or doctor. It lists your answers, what passed the safety checks and why each other tool was kept out.' }), btn, ta);
+  },
+
+  p_goals(v) {
+    const g = S.profile.occupation.goals;
+    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Pick what you want to do. With none picked, every safe tool is shown.' }));
+    for (const c of T.categories) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: c.label }), el('div', { class: 'pills' }, ...Object.entries(T.tasks).filter(([, t]) => t.category === c.id).map(([id, t]) => togglePill(t.label, g.includes(id), '', (on) => setIn(g, id, on))))));
+  },
+  p_caps(v) {
+    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'What you can do reliably and safely on a bad day. "Not sure" counts against a tool.' }), LEGEND());
+    const groups = {}; for (const [d, m] of Object.entries(T.dimensions)) (groups[m.group] ??= []).push(d);
+    for (const [grp, dims] of Object.entries(groups)) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: grp }), ...dims.map((d) => capRow(d, QUESTION[d]))));
+  },
+  p_risk(v) {
+    const p = S.profile.person;
+    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Flags block tools that could hurt. Screening must be marked complete before any tool with a hazard is eligible.' }),
+      el('div', { class: 'pills' }, ...Object.entries(T.risk_flags).map(([f, label]) => togglePill(label, p.risk_flags.includes(f), 'risk', (on) => setIn(p.risk_flags, f, on)))),
+      switchRow('I have read the whole list', 'Confirm only after every flag has been asked about.', p.risk_screening_complete, (on) => { p.risk_screening_complete = on; }));
+  },
+  p_tech(v) {
+    const p = S.profile.person;
+    v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Skills I have' }), el('div', { class: 'pills' }, ...Object.entries(T.tech_tags).map(([t, label]) => togglePill(label, p.tech_literacy.includes(t), '', (on) => setIn(p.tech_literacy, t, on))))));
+    const sel = el('select', { class: 'sel', 'aria-label': 'Budget', onchange: (e) => { p.budget_band = Number(e.target.value); refreshChrome(); } });
+    for (const [k, l] of Object.entries(T.budget_bands)) sel.append(el('option', { value: k, text: l })); sel.value = String(p.budget_band ?? 3);
+    v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Most I would spend on one tool' }), sel), switchRow('Prefer low-tech options', 'Ranks simple tools higher. Never affects safety.', !!p.preferences?.prefer_low_tech, (on) => { p.preferences = { ...(p.preferences ?? {}), prefer_low_tech: on }; }));
+  },
+  p_env(v) {
+    const tags = S.profile.environment.confirmed_tags, blockers = new Set(TOOLS.flatMap((t) => t.environment.forbids_any));
+    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Only switch on what is true. Anything left off is treated as not supported. Red tags block some tools.' }));
+    const domains = {}; for (const [t, m] of Object.entries(T.environment_tags)) (domains[m.domain] ??= []).push([t, m.label]);
+    for (const [dom, list] of Object.entries(domains)) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: dom }), el('div', { class: 'pills' }, ...list.map(([t, label]) => togglePill(label, tags.includes(t), 'env' + (blockers.has(t) ? ' forb' : ''), (on) => setIn(tags, t, on))))));
+  },
+  p_settings(v) {
+    v.append(switchRow('Require clinician review', 'Only clinician-reviewed entries may be shown. Every entry is currently an unreviewed draft, so turning this on shows nothing.', S.review, (on) => { S.review = on; }));
+    v.append(el('div', { class: 'box' }, el('h3', { text: 'About' }), el('div', { class: 'muted', text: 'Matches people to assistive tools and everyday workarounds using the Person-Environment-Occupation model. It supports compensation and adaptation, not rehabilitation. Thresholds are engineering placeholders. Decision support only.' })));
+    const ex = el('select', { class: 'sel', 'aria-label': 'Load an example', onchange: (e) => { if (!e.target.value) return; S.profile = clone(EXAMPLES[e.target.value]); S.onboarded = true; S.saved = []; tab('home'); } }, el('option', { value: '', text: 'Load an example profile (replaces your answers)' }), ...Object.entries(EXAMPLES).map(([k, p]) => el('option', { value: k, text: p.person.label })));
+    v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Try an example' }), ex));
+    const reset = el('button', { class: 'btn ghost', text: S.confirmReset ? 'Tap again to erase everything' : 'Erase my answers and start over' });
+    reset.addEventListener('click', () => { if (!S.confirmReset) { S.confirmReset = true; reset.textContent = 'Tap again to erase everything'; return; } S.confirmReset = false; S.profile = blank(); S.saved = []; S.onboarded = false; S.step = 0; S.stack = [{ page: 'onboard' }]; render(); });
+    v.append(reset);
+  },
+};
+load(); render();
 </script>

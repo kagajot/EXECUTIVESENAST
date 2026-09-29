@@ -35,6 +35,16 @@ The reference UI is a search bar, a row of quick-filter chips, and colour-coded 
 | `src/validate.mjs`               | Vocabulary validation (unknown tag = hard error)                           |
 | `test/*.test.mjs`                | 22 tests incl. a 3000-profile fuzz test against an independent oracle      |
 
+## The app (`demo/`)
+
+`node demo/build.mjs` builds `demo/peo-matcher.html`: a single-file mobile-style app that inlines the real engine.
+First run is a setup flow that only asks what the chosen goals make relevant (about 12 of 19 ability questions for
+a two-goal example). Answers are saved in the browser's `localStorage` on that device only; nothing is sent anywhere.
+Features: safe-options browse (category cards, chips, search), tool detail with why-it-fits, a saved toolkit that is
+re-checked against the current answers, the Safety tab listing every excluded tool with its reason and one-tap
+questions that could unlock more, and a copyable summary for a therapist. It is free: no accounts, no paywall.
+The catalogue is still unreviewed drafts, and the UI says so.
+
 Run: `npm test`, `node src/cli.mjs post_stroke_left_hemiparesis --allow-draft`
 
 ## Data model
