@@ -304,6 +304,9 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .mbody{flex:1;min-height:0;padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px}
 .mbody b{font-family:var(--f-display);font-size:15.5px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mbody span{margin-top:auto;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vrow.char{border:0;font:inherit;text-align:left;width:100%;cursor:pointer;color:inherit}
+.vrow.char .vthumb .ill{display:block;position:absolute;right:-4px;bottom:-8px;width:64px;height:64px;pointer-events:none}
+.vrow .txt .ext{font-size:13px}
 </style>
 
 <div class="stage">
@@ -566,11 +569,15 @@ const GUIDES = [
 const guideMeta = (g) => (g.category ? { label: CAT[g.category].label, color: CAT[g.category].color, ill: g.category } : { label: 'General', color: '#C9A6D8', ill: 'shield' });
 const guideState = (g) => (!g.tool ? 'general' : toolPasses(g.tool) ? 'ok' : 'blocked');
 const guideRank = { ok: 0, general: 1, blocked: 2 };
+// One light row for guides and check-ins, the same as the video row: grey card, small coloured thumbnail, no full-colour fill.
+function mediaRow({ color, character, title, meta, tag, onclick }) {
+  return el('button', { class: 'vrow char', onclick },
+    el('div', { class: 'vthumb', style: `background:${color}` }, ill(character)),
+    el('div', { class: 'txt' }, el('b', { text: title }), el('span', { class: 'ext', text: meta }), tag ? el('span', { class: 'tag ' + tag.cls, text: tag.text }) : null));
+}
 function guideRow(g) {
   const m = guideMeta(g), st = guideState(g);
-  return el('button', { class: 'grow', onclick: () => go('guide', g.id) },
-    el('div', { class: 'gnum', style: `background:${m.color};color:${onColor(m.color)}` }, el('b', { text: String(g.steps.length) }), el('small', { text: 'steps' })),
-    el('div', { class: 'txt' }, el('b', { text: g.title }), el('span', { text: `${g.minutes} min · ${m.label}` }), st === 'blocked' ? el('span', { class: 'tag sev-moderate', text: 'not matched to you' }) : null));
+  return mediaRow({ color: m.color, character: m.ill, title: g.title, meta: `${g.steps.length} steps · ${g.minutes} min · ${m.label}`, tag: st === 'blocked' ? { cls: 'sev-moderate', text: 'not matched to you' } : null, onclick: () => go('guide', g.id) });
 }
 
 // ---------- articles: short, plain-language reading. General information, not advice for one person.
@@ -646,11 +653,9 @@ function checkinInfo(c, all) {
   const unlock = all.excluded.filter((e) => e.could_unlock && e.failures.some((f) => f.code === code && (c.kind ? true : c.dims.includes(f.target)))).length;
   return { done, total, label, unlock };
 }
-function checkinCard(c, all, full) {
-  const i = checkinInfo(c, all), pct = Math.round((i.done / i.total) * 100);
-  return el('button', { class: 'chk' + (full ? ' full' : ''), style: `background:${c.color};color:${onColor(c.color)}`, onclick: () => go('checkin', c.id) },
-    el('b', { text: c.title }), el('span', { text: i.label }), el('div', { class: 'mini' }, el('i', { style: `width:${pct}%` })),
-    i.unlock ? el('span', { text: `Could unlock ${i.unlock} tool${i.unlock === 1 ? '' : 's'}` }) : null, ill(c.ill));
+function checkinCard(c, all) {
+  const i = checkinInfo(c, all);
+  return mediaRow({ color: c.color, character: c.ill, title: c.title, meta: i.label, tag: i.unlock ? { cls: 'plain', text: `Could unlock ${i.unlock} tool${i.unlock === 1 ? '' : 's'}` } : null, onclick: () => go('checkin', c.id) });
 }
 
 // ---------- what the goals make relevant (so the setup only asks what matters)
@@ -768,8 +773,7 @@ const PAGES = {
       const c = gap.code === 'SCREENING_INCOMPLETE' ? cin('risks') : gap.code === 'CAPACITY_UNKNOWN' ? CHECKINS.find((x) => x.dims?.includes(gap.target)) : gap.code === 'TECH_UNCONFIRMED' ? { id: 'tech', title: 'Your tech skills', color: '#F4A6A0', ill: 'communication_tech' } : cin('home');
       const title = gap.code === 'SCREENING_INCOMPLETE' ? 'Finish the risk screening' : gap.code === 'TECH_UNCONFIRMED' ? 'Confirm your tech skills' : gap.code === 'CAPACITY_UNKNOWN' ? `Check in: ${c.title.toLowerCase()}` : 'Confirm details about your home';
       v.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Next step' })),
-        el('button', { class: 'chk full', style: `background:${c.color};color:${onColor(c.color)}`, onclick: () => (c.id === 'tech' ? go('p_tech') : go('checkin', c.id)) },
-          el('b', { text: title }), el('span', { text: `Opens up ${gap.could_unlock} tool${gap.could_unlock === 1 ? '' : 's'}` }), ill(c.ill))));
+        mediaRow({ color: c.color, character: c.ill, title, meta: `Opens up ${gap.could_unlock} tool${gap.could_unlock === 1 ? '' : 's'}`, onclick: () => (c.id === 'tech' ? go('p_tech') : go('checkin', c.id)) })));
     }
   },
 
