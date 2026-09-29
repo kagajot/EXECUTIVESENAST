@@ -1,0 +1,161 @@
+{
+  "post_stroke_left_hemiparesis": {
+    "person": {
+      "label": "Post-stroke, left-sided weakness, reduced sensation",
+      "capacities": {
+        "grip_strength": 2,
+        "fine_motor": 2,
+        "bilateral_hand_use": 1,
+        "reach_range": 4,
+        "balance": 2,
+        "transfer_ability": 3,
+        "endurance": 2,
+        "tremor_control": 3,
+        "vision": 3,
+        "hearing": 4,
+        "tactile_sensation": 2,
+        "working_memory": 3,
+        "sequencing": 3,
+        "attention": 3,
+        "initiation": 4,
+        "problem_solving": 4,
+        "safety_judgment": 3,
+        "new_learning": 3,
+        "speech_clarity": 4,
+        "literacy": 4
+      },
+      "risk_flags": [
+        "reduced_thermal_sensation",
+        "high_fall_risk"
+      ],
+      "risk_screening_complete": true,
+      "tech_literacy": [
+        "smartphone_owned",
+        "touchscreen_basic"
+      ],
+      "budget_band": 2,
+      "preferences": {
+        "prefer_low_tech": true
+      }
+    },
+    "environment": {
+      "confirmed_tags": [
+        "kitchen_counter_workspace",
+        "microwave_available",
+        "power_outlet_near_counter",
+        "gas_hob",
+        "shower_over_tub",
+        "step_free_entry",
+        "firm_chair_available",
+        "wifi_home",
+        "helper_available_for_setup"
+      ]
+    },
+    "occupation": {
+      "goals": [
+        "cut_food",
+        "open_jars",
+        "shower_transfer",
+        "take_medications",
+        "put_on_socks",
+        "pick_up_items_floor"
+      ]
+    }
+  },
+  "early_cognitive_impairment_lives_alone": {
+    "person": {
+      "label": "Early cognitive impairment, physically well, lives alone",
+      "capacities": {
+        "grip_strength": 4,
+        "fine_motor": 4,
+        "bilateral_hand_use": 4,
+        "reach_range": 4,
+        "balance": 4,
+        "transfer_ability": 4,
+        "endurance": 4,
+        "tremor_control": 4,
+        "vision": 4,
+        "hearing": 4,
+        "tactile_sensation": 4,
+        "working_memory": 1,
+        "sequencing": 2,
+        "attention": 2,
+        "initiation": 2,
+        "problem_solving": 2,
+        "safety_judgment": 2,
+        "new_learning": 1,
+        "speech_clarity": 4,
+        "literacy": 4
+      },
+      "risk_flags": [
+        "cognitive_stove_safety_concern",
+        "wandering_risk"
+      ],
+      "risk_screening_complete": true,
+      "tech_literacy": [
+        "smartphone_owned"
+      ],
+      "budget_band": 3
+    },
+    "environment": {
+      "confirmed_tags": [
+        "electric_hob",
+        "structural_modification_permitted",
+        "helper_available_for_setup",
+        "wifi_home",
+        "smart_speaker_present",
+        "kitchen_counter_workspace",
+        "microwave_available",
+        "power_outlet_near_counter",
+        "landline_jack",
+        "power_outlet_near_seating"
+      ]
+    },
+    "occupation": {
+      "goals": [
+        "cook_hot_meal",
+        "take_medications",
+        "remember_appointments",
+        "plan_daily_routine",
+        "make_phone_call"
+      ]
+    }
+  },
+  "incomplete_intake": {
+    "person": {
+      "label": "Intake in progress: most capacities not yet assessed, risk screening not done",
+      "capacities": {
+        "grip_strength": 3,
+        "vision": 4,
+        "hearing": 4,
+        "balance": null,
+        "safety_judgment": null,
+        "new_learning": 3,
+        "working_memory": 3,
+        "sequencing": 3,
+        "initiation": 3,
+        "literacy": 4,
+        "fine_motor": 3,
+        "attention": 3
+      },
+      "risk_flags": [],
+      "risk_screening_complete": false,
+      "tech_literacy": [],
+      "budget_band": 2
+    },
+    "environment": {
+      "confirmed_tags": [
+        "kitchen_counter_workspace",
+        "shower_over_tub"
+      ]
+    },
+    "occupation": {
+      "goals": [
+        "cut_food",
+        "shower_transfer",
+        "remember_appointments",
+        "take_medications"
+      ]
+    }
+  }
+}

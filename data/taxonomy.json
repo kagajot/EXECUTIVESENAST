@@ -1,0 +1,115 @@
+{
+  "version": "0.1.0",
+  "scale": {
+    "note": "Capacity = what the person can do RELIABLY and SAFELY, unaided, on a bad day - not best day. Ordinal, not interval. Null/absent = NOT ASSESSED and is treated as failing any demand (fail-closed).",
+    "levels": {
+      "0": "Unable",
+      "1": "Severely limited",
+      "2": "Moderately limited",
+      "3": "Mildly limited",
+      "4": "Typical / unimpaired"
+    }
+  },
+  "dimensions": {
+    "grip_strength":       { "group": "physical",      "label": "Grip strength" },
+    "fine_motor":          { "group": "physical",      "label": "Fine motor dexterity" },
+    "bilateral_hand_use":  { "group": "physical",      "label": "Coordinated use of both hands" },
+    "reach_range":         { "group": "physical",      "label": "Reach range" },
+    "balance":             { "group": "physical",      "label": "Standing / sitting balance" },
+    "transfer_ability":    { "group": "physical",      "label": "Sit-stand and surface-to-surface transfers" },
+    "endurance":           { "group": "physical",      "label": "Activity endurance" },
+    "tremor_control":      { "group": "physical",      "label": "Steadiness (4 = no tremor)" },
+    "vision":              { "group": "sensory",       "label": "Functional vision" },
+    "hearing":             { "group": "sensory",       "label": "Functional hearing" },
+    "tactile_sensation":   { "group": "sensory",       "label": "Protective touch / heat / pain sensation" },
+    "working_memory":      { "group": "cognitive",     "label": "Working memory" },
+    "sequencing":          { "group": "cognitive",     "label": "Multi-step sequencing" },
+    "attention":           { "group": "cognitive",     "label": "Sustained attention" },
+    "initiation":          { "group": "cognitive",     "label": "Task initiation" },
+    "problem_solving":     { "group": "cognitive",     "label": "Problem solving when something goes wrong" },
+    "safety_judgment":     { "group": "cognitive",     "label": "Hazard recognition and safety judgment" },
+    "new_learning":        { "group": "cognitive",     "label": "Learning a new routine or device" },
+    "speech_clarity":      { "group": "communication", "label": "Speech clarity" },
+    "literacy":            { "group": "communication", "label": "Reading / writing" }
+  },
+  "risk_flags": {
+    "uncontrolled_seizures":         "Seizures not controlled",
+    "high_fall_risk":                "High fall risk",
+    "dizziness_or_syncope":          "Dizziness or fainting episodes",
+    "reduced_thermal_sensation":     "Reduced heat/cold sensation (burn risk)",
+    "skin_fragility":                "Fragile skin",
+    "anticoagulant_use":             "Anticoagulant use (bleeding risk)",
+    "impaired_swallow":              "Impaired swallow",
+    "wandering_risk":                "Wandering risk",
+    "poor_impulse_control":          "Poor impulse control",
+    "hypersensitivity_to_noise":     "Noise hypersensitivity",
+    "cognitive_stove_safety_concern":"Documented unsafe stove use"
+  },
+  "environment_tags": {
+    "kitchen_counter_workspace":       { "domain": "kitchen", "label": "Stable, clear counter workspace" },
+    "power_outlet_near_counter":       { "domain": "kitchen", "label": "Outlet reachable at counter" },
+    "electric_hob":                    { "domain": "kitchen", "label": "Electric / induction hob" },
+    "gas_hob":                         { "domain": "kitchen", "label": "Gas hob" },
+    "microwave_available":             { "domain": "kitchen", "label": "Microwave available" },
+    "shower_over_tub":                 { "domain": "bathroom","label": "Shower over tub" },
+    "walk_in_shower":                  { "domain": "bathroom","label": "Walk-in / curbless shower" },
+    "wall_blocking_present":           { "domain": "bathroom","label": "Wall studs / blocking where support is needed" },
+    "structural_modification_permitted":{"domain": "home",    "label": "Owner or landlord permits drilling / hard-wiring" },
+    "step_free_entry":                 { "domain": "home",    "label": "Step-free route in and around home" },
+    "doorways_32in_min":               { "domain": "home",    "label": "All used doorways >= 32in / 81cm" },
+    "stairs_in_daily_route":           { "domain": "home",    "label": "Stairs on the daily route" },
+    "loose_rugs_present":              { "domain": "home",    "label": "Loose rugs / cords on floors" },
+    "firm_chair_available":            { "domain": "home",    "label": "Firm chair with arms available" },
+    "landline_jack":                   { "domain": "home",    "label": "Working landline jack" },
+    "power_outlet_near_seating":       { "domain": "home",    "label": "Outlet near main seating" },
+    "wifi_home":                       { "domain": "connectivity", "label": "Reliable home wifi" },
+    "smart_speaker_present":           { "domain": "connectivity", "label": "Smart speaker already installed" },
+    "helper_available_for_setup":      { "domain": "support", "label": "Someone can install / configure / refill" },
+    "caregiver_present_during_use":    { "domain": "support", "label": "Someone present when tool is used" }
+  },
+  "tech_tags": {
+    "smartphone_owned":        "Owns a smartphone",
+    "touchscreen_basic":       "Operates a touchscreen independently",
+    "app_install":             "Installs and configures apps independently",
+    "voice_commands":          "Uses voice commands reliably",
+    "wifi_setup_independent":  "Connects devices to wifi independently"
+  },
+  "categories": [
+    { "id": "eating_kitchen",     "label": "Kitchen & meals",        "color": "#F28C4B", "sort": 1 },
+    { "id": "self_care",          "label": "Dressing & grooming",    "color": "#C9A6D8", "sort": 2 },
+    { "id": "bathing_toileting",  "label": "Bathing & toileting",    "color": "#5B8FD4", "sort": 3 },
+    { "id": "mobility_transfers", "label": "Moving around",          "color": "#4A5068", "sort": 4 },
+    { "id": "medication_health",  "label": "Medication",             "color": "#6CC7A2", "sort": 5 },
+    { "id": "memory_planning",    "label": "Memory & planning",      "color": "#4FB8B0", "sort": 6 },
+    { "id": "communication_tech", "label": "Phone & communication",  "color": "#F6C56B", "sort": 7 }
+  ],
+  "chips": {
+    "one_handed":        "One-handed",
+    "low_tech":          "Low-tech",
+    "no_install":        "No installation",
+    "hands_free":        "Hands-free",
+    "prompts_reminders": "Reminders"
+  },
+  "tasks": {
+    "cut_food":                { "category": "eating_kitchen",     "label": "Cut food" },
+    "open_jars":               { "category": "eating_kitchen",     "label": "Open jars and containers" },
+    "cook_hot_meal":           { "category": "eating_kitchen",     "label": "Prepare a hot meal" },
+    "button_clothing":         { "category": "self_care",          "label": "Button / zip clothing" },
+    "put_on_socks":            { "category": "self_care",          "label": "Put on socks" },
+    "pick_up_items_floor":     { "category": "self_care",          "label": "Pick up items from the floor" },
+    "shower_transfer":         { "category": "bathing_toileting",  "label": "Get in and out of shower / tub" },
+    "bathe_seated":            { "category": "bathing_toileting",  "label": "Wash while seated" },
+    "walk_household_distance": { "category": "mobility_transfers", "label": "Walk between rooms" },
+    "take_medications":        { "category": "medication_health",  "label": "Take the right medication on time" },
+    "remember_appointments":   { "category": "memory_planning",    "label": "Remember appointments" },
+    "plan_daily_routine":      { "category": "memory_planning",    "label": "Keep track of the daily routine" },
+    "make_phone_call":         { "category": "communication_tech", "label": "Make a phone call" },
+    "send_messages":           { "category": "communication_tech", "label": "Send messages" }
+  },
+  "budget_bands": {
+    "0": "Free",
+    "1": "Under ~$25",
+    "2": "Under ~$100",
+    "3": "$100+"
+  }
+}

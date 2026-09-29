@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.invalid/peo/tool.schema.json",
+  "title": "Assistive tool / workaround catalogue entry",
+  "description": "Structural schema. Vocabulary (dimension names, tags, task ids) is validated against data/taxonomy.json by src/validate.mjs, because unknown tags in a safety filter must be a hard error.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id","name","kind","category","addresses","summary","tags","demands","hazards","contraindicated_if_any","supervised_if_below","environment","tech","setup_requires_helper","cost_band","complexity","learning_burden","evidence","safety_review"],
+  "properties": {
+    "id":       { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "name":     { "type": "string", "minLength": 1 },
+    "kind":     { "enum": ["device", "workaround", "digital"] },
+    "category": { "type": "string" },
+    "addresses":{ "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" }, "description": "Occupation (task) ids this tool compensates for." },
+    "summary":  { "type": "string" },
+    "tags":     { "type": "array", "uniqueItems": true, "items": { "type": "string" }, "description": "Quick-filter chips." },
+    "demands": {
+      "type": "object",
+      "description": "Minimum person capacity per dimension (0-4 ordinal scale). Absent dimension = no demand. `critical` dimensions get an extra margin scaled by hazard severity.",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "integer", "minimum": 1, "maximum": 4 },
+          { "type": "object", "additionalProperties": false, "required": ["min"],
+            "properties": { "min": { "type": "integer", "minimum": 1, "maximum": 4 }, "critical": { "type": "boolean" } } }
+        ]
+      }
+    },
+    "hazards": {
+      "type": "object", "additionalProperties": false, "required": ["severity", "notes"],
+      "properties": { "severity": { "enum": ["none","low","moderate","high"] }, "notes": { "type": "string" } }
+    },
+    "contraindicated_if_any": { "type": "array", "uniqueItems": true, "items": { "type": "string" }, "description": "Person risk flags that hard-block this tool." },
+    "supervised_if_below": {
+      "type": "array",
+      "description": "If person capacity < level, the tool is allowed only when a person is present during use.",
+      "items": { "type": "object", "additionalProperties": false, "required": ["dimension","level"],
+                 "properties": { "dimension": { "type": "string" }, "level": { "type": "integer", "minimum": 1, "maximum": 4 } } }
+    },
+    "environment": {
+      "type": "object", "additionalProperties": false, "required": ["requires_all","forbids_any"],
+      "properties": {
+        "requires_all": { "type": "array", "uniqueItems": true, "items": { "type": "string" }, "description": "ALL must be explicitly confirmed. Unconfirmed = fail." },
+        "forbids_any":  { "type": "array", "uniqueItems": true, "items": { "type": "string" }, "description": "ANY present = fail." }
+      }
+    },
+    "tech": {
+      "type": "object", "additionalProperties": false, "required": ["daily_use","setup"],
+      "properties": {
+        "daily_use": { "type": "array", "uniqueItems": true, "items": { "type": "string" }, "description": "Person must hold every tag. No helper substitution." },
+        "setup":     { "type": "array", "uniqueItems": true, "items": { "type": "string" }, "description": "Person must hold every tag OR a setup helper must be available." }
+      }
+    },
+    "setup_requires_helper": { "type": "boolean" },
+    "cost_band":       { "type": "integer", "minimum": 0, "maximum": 3 },
+    "complexity":      { "type": "integer", "minimum": 0, "maximum": 3 },
+    "learning_burden": { "type": "integer", "minimum": 0, "maximum": 3 },
+    "evidence": { "enum": ["unassessed","manufacturer_claim_only","expert_consensus","clinical_guideline","controlled_study"] },
+    "safety_review": {
+      "type": "object", "additionalProperties": false, "required": ["status","reviewed_by","reviewed_on"],
+      "properties": {
+        "status": { "enum": ["draft","clinician_reviewed","retired"] },
+        "reviewed_by": { "type": ["string","null"] },
+        "reviewed_on": { "type": ["string","null"], "format": "date" }
+      },
+      "if":   { "properties": { "status": { "const": "clinician_reviewed" } } },
+      "then": { "properties": { "reviewed_by": { "type": "string", "minLength": 1 }, "reviewed_on": { "type": "string", "minLength": 1 } } }
+    }
+  }
+}

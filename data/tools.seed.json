@@ -1,0 +1,919 @@
+{
+  "catalog_version": "0.1.0-seed",
+  "tools": [
+    {
+      "id": "rocker_knife",
+      "name": "One-handed rocker knife",
+      "kind": "device",
+      "category": "eating_kitchen",
+      "addresses": [
+        "cut_food"
+      ],
+      "summary": "Curved blade cuts with a rocking motion; one hand, no pinch grip.",
+      "tags": [
+        "one_handed",
+        "low_tech",
+        "no_install"
+      ],
+      "demands": {
+        "grip_strength": 2,
+        "tremor_control": {
+          "min": 2,
+          "critical": true
+        },
+        "tactile_sensation": 2,
+        "attention": 2,
+        "safety_judgment": {
+          "min": 3,
+          "critical": true
+        }
+      },
+      "hazards": {
+        "severity": "moderate",
+        "notes": "Exposed blade. Use on a non-slip mat."
+      },
+      "contraindicated_if_any": [
+        "poor_impulse_control",
+        "anticoagulant_use"
+      ],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [
+          "kitchen_counter_workspace"
+        ],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": false,
+      "cost_band": 1,
+      "complexity": 1,
+      "learning_burden": 1,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "wall_jar_opener",
+      "name": "Under-cabinet jar opener",
+      "kind": "device",
+      "category": "eating_kitchen",
+      "addresses": [
+        "open_jars"
+      ],
+      "summary": "Fixed gripping jaws; jar is turned against the fixture with one hand.",
+      "tags": [
+        "one_handed",
+        "low_tech"
+      ],
+      "demands": {
+        "grip_strength": 1
+      },
+      "hazards": {
+        "severity": "low",
+        "notes": "Drilled fixture; check screw length before mounting."
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [
+          "structural_modification_permitted",
+          "kitchen_counter_workspace"
+        ],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": true,
+      "cost_band": 1,
+      "complexity": 1,
+      "learning_burden": 1,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "electric_jar_opener",
+      "name": "Battery / mains jar opener",
+      "kind": "device",
+      "category": "eating_kitchen",
+      "addresses": [
+        "open_jars"
+      ],
+      "summary": "Clamps the lid and turns it at the push of a button.",
+      "tags": [
+        "one_handed",
+        "no_install"
+      ],
+      "demands": {
+        "grip_strength": 1,
+        "fine_motor": 1,
+        "attention": 2
+      },
+      "hazards": {
+        "severity": "low",
+        "notes": "Mains-powered; keep cord clear of walkways."
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [
+          "kitchen_counter_workspace",
+          "power_outlet_near_counter"
+        ],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": false,
+      "cost_band": 2,
+      "complexity": 2,
+      "learning_burden": 1,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "stove_auto_shutoff",
+      "name": "Stove auto shut-off (heat-sensing)",
+      "kind": "device",
+      "category": "eating_kitchen",
+      "addresses": [
+        "cook_hot_meal"
+      ],
+      "summary": "Cuts hob power when unattended or overheating; audible warning first.",
+      "tags": [],
+      "demands": {
+        "hearing": {
+          "min": 2,
+          "critical": true
+        }
+      },
+      "hazards": {
+        "severity": "moderate",
+        "notes": "Reduces but does not eliminate fire risk. Not a substitute for supervision where a clinician advises it."
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [
+          "electric_hob",
+          "structural_modification_permitted"
+        ],
+        "forbids_any": [
+          "gas_hob"
+        ]
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": true,
+      "cost_band": 3,
+      "complexity": 1,
+      "learning_burden": 0,
+      "evidence": "manufacturer_claim_only",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "microwave_meal_routine",
+      "name": "Microwave pre-portioned meal routine",
+      "kind": "workaround",
+      "category": "eating_kitchen",
+      "addresses": [
+        "cook_hot_meal"
+      ],
+      "summary": "Pre-portioned labelled meals, one-step microwave routine, no hob use.",
+      "tags": [
+        "low_tech",
+        "no_install"
+      ],
+      "demands": {
+        "sequencing": 2,
+        "vision": 2,
+        "safety_judgment": {
+          "min": 2,
+          "critical": true
+        },
+        "tactile_sensation": {
+          "min": 2,
+          "critical": true
+        }
+      },
+      "hazards": {
+        "severity": "moderate",
+        "notes": "Hot containers and steam. Use a tray with handles."
+      },
+      "contraindicated_if_any": [
+        "reduced_thermal_sensation"
+      ],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [
+          "microwave_available"
+        ],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": false,
+      "cost_band": 1,
+      "complexity": 0,
+      "learning_burden": 1,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "button_hook_zip_pull",
+      "name": "Button hook and zipper pull",
+      "kind": "device",
+      "category": "self_care",
+      "addresses": [
+        "button_clothing"
+      ],
+      "summary": "Loop tool draws buttons through holes; ring pull for zippers. One-handed.",
+      "tags": [
+        "one_handed",
+        "low_tech",
+        "no_install"
+      ],
+      "demands": {
+        "fine_motor": 2,
+        "grip_strength": 1,
+        "sequencing": 2,
+        "vision": 1
+      },
+      "hazards": {
+        "severity": "low",
+        "notes": ""
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": false,
+      "cost_band": 1,
+      "complexity": 1,
+      "learning_burden": 1,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "sock_aid",
+      "name": "Sock aid",
+      "kind": "device",
+      "category": "self_care",
+      "addresses": [
+        "put_on_socks"
+      ],
+      "summary": "Sock is loaded on a flexible sleeve and pulled on from a seated position.",
+      "tags": [
+        "low_tech",
+        "no_install"
+      ],
+      "demands": {
+        "grip_strength": 2,
+        "balance": {
+          "min": 2,
+          "critical": true
+        },
+        "sequencing": 2,
+        "new_learning": 2
+      },
+      "hazards": {
+        "severity": "low",
+        "notes": "Loss of seated balance while leaning forward."
+      },
+      "contraindicated_if_any": [
+        "dizziness_or_syncope"
+      ],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [
+          "firm_chair_available"
+        ],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": false,
+      "cost_band": 1,
+      "complexity": 1,
+      "learning_burden": 2,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "reacher_grabber",
+      "name": "Reacher / grabber",
+      "kind": "device",
+      "category": "self_care",
+      "addresses": [
+        "pick_up_items_floor"
+      ],
+      "summary": "Trigger-operated long-handled tongs for retrieving floor-level items.",
+      "tags": [
+        "low_tech",
+        "no_install"
+      ],
+      "demands": {
+        "grip_strength": 2,
+        "balance": {
+          "min": 3,
+          "critical": true
+        },
+        "safety_judgment": 2
+      },
+      "hazards": {
+        "severity": "moderate",
+        "notes": "Forward reach while standing raises fall risk."
+      },
+      "contraindicated_if_any": [
+        "high_fall_risk",
+        "dizziness_or_syncope"
+      ],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [],
+        "forbids_any": [
+          "loose_rugs_present"
+        ]
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": false,
+      "cost_band": 1,
+      "complexity": 1,
+      "learning_burden": 1,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "installed_grab_bar",
+      "name": "Wall-anchored grab bar",
+      "kind": "device",
+      "category": "bathing_toileting",
+      "addresses": [
+        "shower_transfer"
+      ],
+      "summary": "Fixed bar at the tub / shower entry for support during the step-over.",
+      "tags": [],
+      "demands": {
+        "grip_strength": {
+          "min": 2,
+          "critical": true
+        },
+        "balance": 1,
+        "safety_judgment": 2
+      },
+      "hazards": {
+        "severity": "high",
+        "notes": "Must be anchored into blocking by a qualified installer. Anchor failure causes a fall."
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [
+          "structural_modification_permitted",
+          "wall_blocking_present"
+        ],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": true,
+      "cost_band": 2,
+      "complexity": 0,
+      "learning_burden": 0,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "shower_chair",
+      "name": "Shower chair with back",
+      "kind": "device",
+      "category": "bathing_toileting",
+      "addresses": [
+        "bathe_seated"
+      ],
+      "summary": "Seat with backrest for washing seated in a walk-in shower.",
+      "tags": [
+        "low_tech",
+        "no_install"
+      ],
+      "demands": {
+        "balance": {
+          "min": 2,
+          "critical": true
+        },
+        "transfer_ability": {
+          "min": 2,
+          "critical": true
+        },
+        "safety_judgment": 2
+      },
+      "hazards": {
+        "severity": "moderate",
+        "notes": "Wet surface transfer. Rubber feet must be intact."
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [
+          "walk_in_shower"
+        ],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": false,
+      "cost_band": 2,
+      "complexity": 0,
+      "learning_burden": 1,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "tub_transfer_bench",
+      "name": "Tub transfer bench",
+      "kind": "device",
+      "category": "bathing_toileting",
+      "addresses": [
+        "shower_transfer",
+        "bathe_seated"
+      ],
+      "summary": "Bench spanning the tub wall; sit outside, slide across, wash seated.",
+      "tags": [
+        "low_tech"
+      ],
+      "demands": {
+        "balance": {
+          "min": 2,
+          "critical": true
+        },
+        "transfer_ability": {
+          "min": 2,
+          "critical": true
+        },
+        "bilateral_hand_use": 2,
+        "safety_judgment": 2
+      },
+      "hazards": {
+        "severity": "high",
+        "notes": "Wet surface transfer over the tub edge."
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [
+        {
+          "dimension": "safety_judgment",
+          "level": 3
+        }
+      ],
+      "environment": {
+        "requires_all": [
+          "shower_over_tub"
+        ],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": true,
+      "cost_band": 2,
+      "complexity": 1,
+      "learning_burden": 2,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "rollator",
+      "name": "Rollator (4-wheel walker)",
+      "kind": "device",
+      "category": "mobility_transfers",
+      "addresses": [
+        "walk_household_distance"
+      ],
+      "summary": "Wheeled walker with brakes and seat for household mobility.",
+      "tags": [
+        "low_tech",
+        "no_install"
+      ],
+      "demands": {
+        "grip_strength": 2,
+        "balance": {
+          "min": 1,
+          "critical": true
+        },
+        "endurance": 2,
+        "vision": 2,
+        "safety_judgment": 2
+      },
+      "hazards": {
+        "severity": "high",
+        "notes": "Tipping on thresholds, brake misuse, falls."
+      },
+      "contraindicated_if_any": [
+        "uncontrolled_seizures"
+      ],
+      "supervised_if_below": [
+        {
+          "dimension": "safety_judgment",
+          "level": 3
+        }
+      ],
+      "environment": {
+        "requires_all": [
+          "step_free_entry",
+          "doorways_32in_min"
+        ],
+        "forbids_any": [
+          "stairs_in_daily_route",
+          "loose_rugs_present"
+        ]
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": false,
+      "cost_band": 2,
+      "complexity": 1,
+      "learning_burden": 2,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "pill_organizer_alarm",
+      "name": "Weekly pill organizer with alarm",
+      "kind": "device",
+      "category": "medication_health",
+      "addresses": [
+        "take_medications"
+      ],
+      "summary": "Compartments by day and time with an audible timer; easy-open lids.",
+      "tags": [
+        "low_tech",
+        "no_install",
+        "prompts_reminders"
+      ],
+      "demands": {
+        "fine_motor": 2,
+        "vision": {
+          "min": 2,
+          "critical": true
+        },
+        "sequencing": {
+          "min": 2,
+          "critical": true
+        },
+        "working_memory": 1,
+        "safety_judgment": {
+          "min": 2,
+          "critical": true
+        }
+      },
+      "hazards": {
+        "severity": "high",
+        "notes": "Dosing errors can cause harm. Weekly fill should be checked by a helper or pharmacist."
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": false,
+      "cost_band": 1,
+      "complexity": 1,
+      "learning_burden": 1,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "locked_pill_dispenser",
+      "name": "Connected locked pill dispenser",
+      "kind": "device",
+      "category": "medication_health",
+      "addresses": [
+        "take_medications"
+      ],
+      "summary": "Releases only the due dose, alerts by sound and app, notifies a helper if missed.",
+      "tags": [
+        "hands_free",
+        "prompts_reminders"
+      ],
+      "demands": {
+        "vision": 2,
+        "hearing": {
+          "min": 2,
+          "critical": true
+        },
+        "new_learning": 2,
+        "initiation": 1
+      },
+      "hazards": {
+        "severity": "high",
+        "notes": "Device failure or lockout could prevent a dose. Needs a fallback plan."
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [
+          "wifi_home",
+          "power_outlet_near_counter"
+        ],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": [
+          "smartphone_owned",
+          "app_install",
+          "wifi_setup_independent"
+        ]
+      },
+      "setup_requires_helper": false,
+      "cost_band": 3,
+      "complexity": 3,
+      "learning_burden": 2,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "smart_speaker_reminders",
+      "name": "Smart-speaker spoken reminders",
+      "kind": "digital",
+      "category": "memory_planning",
+      "addresses": [
+        "remember_appointments",
+        "plan_daily_routine"
+      ],
+      "summary": "Spoken time-based reminders set by voice or by a helper's app.",
+      "tags": [
+        "hands_free",
+        "prompts_reminders",
+        "no_install"
+      ],
+      "demands": {
+        "hearing": 2,
+        "speech_clarity": 2,
+        "working_memory": 1
+      },
+      "hazards": {
+        "severity": "none",
+        "notes": ""
+      },
+      "contraindicated_if_any": [
+        "hypersensitivity_to_noise"
+      ],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [
+          "wifi_home",
+          "smart_speaker_present"
+        ],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [
+          "voice_commands"
+        ],
+        "setup": [
+          "smartphone_owned",
+          "app_install",
+          "wifi_setup_independent"
+        ]
+      },
+      "setup_requires_helper": false,
+      "cost_band": 1,
+      "complexity": 2,
+      "learning_burden": 2,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "paper_wall_calendar",
+      "name": "Wall calendar + daily routine whiteboard",
+      "kind": "workaround",
+      "category": "memory_planning",
+      "addresses": [
+        "remember_appointments",
+        "plan_daily_routine"
+      ],
+      "summary": "Large-format calendar and a whiteboard at a fixed spot, checked at a fixed time.",
+      "tags": [
+        "low_tech",
+        "no_install",
+        "prompts_reminders"
+      ],
+      "demands": {
+        "vision": 2,
+        "literacy": 2,
+        "initiation": 2
+      },
+      "hazards": {
+        "severity": "none",
+        "notes": ""
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": false,
+      "cost_band": 0,
+      "complexity": 0,
+      "learning_burden": 0,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "amplified_big_button_phone",
+      "name": "Amplified big-button landline phone",
+      "kind": "device",
+      "category": "communication_tech",
+      "addresses": [
+        "make_phone_call"
+      ],
+      "summary": "Large keys, adjustable volume, photo speed-dial.",
+      "tags": [
+        "low_tech",
+        "no_install"
+      ],
+      "demands": {
+        "hearing": 1,
+        "vision": 1,
+        "fine_motor": 1,
+        "working_memory": 1
+      },
+      "hazards": {
+        "severity": "none",
+        "notes": ""
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [
+          "landline_jack",
+          "power_outlet_near_seating"
+        ],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [],
+        "setup": []
+      },
+      "setup_requires_helper": false,
+      "cost_band": 2,
+      "complexity": 0,
+      "learning_burden": 0,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    },
+    {
+      "id": "phone_accessibility_setup",
+      "name": "Smartphone large-text + voice-dial setup",
+      "kind": "digital",
+      "category": "communication_tech",
+      "addresses": [
+        "make_phone_call",
+        "send_messages"
+      ],
+      "summary": "Enlarged text, favourites screen, voice dialling and dictation.",
+      "tags": [
+        "hands_free"
+      ],
+      "demands": {
+        "working_memory": 2,
+        "attention": 2,
+        "new_learning": 2
+      },
+      "hazards": {
+        "severity": "low",
+        "notes": "Scam calls and links; disable unknown-caller answering."
+      },
+      "contraindicated_if_any": [],
+      "supervised_if_below": [],
+      "environment": {
+        "requires_all": [],
+        "forbids_any": []
+      },
+      "tech": {
+        "daily_use": [
+          "smartphone_owned",
+          "touchscreen_basic"
+        ],
+        "setup": [
+          "smartphone_owned"
+        ]
+      },
+      "setup_requires_helper": false,
+      "cost_band": 0,
+      "complexity": 2,
+      "learning_burden": 2,
+      "evidence": "expert_consensus",
+      "safety_review": {
+        "status": "draft",
+        "reviewed_by": null,
+        "reviewed_on": null
+      }
+    }
+  ]
+}

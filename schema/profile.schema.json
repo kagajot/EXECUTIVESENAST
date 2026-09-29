@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.invalid/peo/profile.schema.json",
+  "title": "PEO profile (Person, Environment, Occupation)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["person", "environment", "occupation"],
+  "properties": {
+    "person": {
+      "type": "object", "additionalProperties": false, "required": ["capacities", "risk_flags", "risk_screening_complete", "tech_literacy"],
+      "properties": {
+        "label": { "type": "string" },
+        "capacities": {
+          "type": "object",
+          "description": "Dimension -> 0-4 ordinal, or null = NOT ASSESSED. Missing keys are also treated as not assessed. Never default a missing value to 'typical'.",
+          "additionalProperties": { "type": ["integer", "null"], "minimum": 0, "maximum": 4 }
+        },
+        "risk_flags": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+        "risk_screening_complete": { "type": "boolean", "description": "Must be an explicit true before any tool with a contraindication list or moderate/high hazard is eligible." },
+        "tech_literacy": { "type": "array", "uniqueItems": true, "items": { "type": "string" }, "description": "Tags the person demonstrably holds. Absent = does not hold." },
+        "budget_band": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "preferences": { "type": "object", "additionalProperties": false, "properties": { "prefer_low_tech": { "type": "boolean" } } }
+      }
+    },
+    "environment": {
+      "type": "object", "additionalProperties": false, "required": ["confirmed_tags"],
+      "properties": {
+        "confirmed_tags": { "type": "array", "uniqueItems": true, "items": { "type": "string" }, "description": "Only tags verified true (self-report or assessor). A tag that was never asked is simply absent, which the engine treats as 'not supported'." }
+      }
+    },
+    "occupation": {
+      "type": "object", "additionalProperties": false, "required": ["goals"],
+      "properties": {
+        "goals": { "type": "array", "uniqueItems": true, "items": { "type": "string" }, "description": "Task ids the person wants to do. Empty = browse mode." },
+        "query": {
+          "type": "object", "additionalProperties": false,
+          "description": "UI narrowing only (category card / chips / search box). Applied AFTER safety gating; cannot add tools.",
+          "properties": { "category": { "type": ["string","null"] }, "chips": { "type": "array", "items": { "type": "string" } }, "text": { "type": ["string","null"] } }
+        }
+      }
+    }
+  }
+}

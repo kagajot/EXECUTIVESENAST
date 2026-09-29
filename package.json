@@ -1,0 +1,17 @@
+{
+  "name": "peo-assistive-matcher",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "PEO-model (Person-Environment-Occupation) assistive tool matching engine. Safety-gated, fail-closed.",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "demo": "node src/cli.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0"
+  }
+}
