@@ -231,6 +231,22 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .art ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
 .art li{position:relative;padding-left:22px;font-size:16px;line-height:1.5}
 .art li::before{content:"";position:absolute;left:4px;top:.6em;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.ltiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ltile{display:flex;flex-direction:column;gap:4px;align-items:flex-start;border:0;border-radius:20px;padding:14px;text-align:left;cursor:pointer;color:var(--ink);min-height:112px}
+.ltile b{font-family:var(--f-display);font-size:18px;line-height:1.1}.ltile>span:last-child{font-size:13px}
+.lico{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.85);display:grid;place-items:center;margin-bottom:6px}
+.lico svg{width:22px;height:22px;fill:none;stroke:var(--ink);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.alist{display:flex;flex-direction:column}
+.arow{display:flex;flex-direction:column;gap:5px;align-items:flex-start;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:16px 0;width:100%;cursor:pointer}
+.arow:first-child{padding-top:4px}.arow:last-child{border-bottom:0}
+.arow .topic{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.arow b{font-family:var(--f-display);font-size:20px;line-height:1.2}
+.arow .sum{color:var(--muted);font-size:15px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.arow .read{font-size:13px;color:var(--muted)}
+.grow{display:flex;gap:14px;align-items:center;border:0;background:var(--surface);border-radius:18px;padding:12px;text-align:left;cursor:pointer;width:100%}
+.gnum{flex:none;width:64px;height:64px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.gnum b{font-family:var(--f-display);font-weight:800;font-size:26px}.gnum small{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.85;margin-top:3px}
+.grow .txt{display:flex;flex-direction:column;gap:3px;min-width:0}.grow .txt b{font-family:var(--f-display);font-size:16px;line-height:1.2}.grow .txt span{color:var(--muted);font-size:13px}
 </style>
 
 <div class="stage">
@@ -320,7 +336,7 @@ function toolItem(r, best) {
       el('div', { class: 'row2', style: 'margin-top:4px' }, best ? el('span', { class: 'tag best', text: 'Best match' }) : null, S.saved.includes(r.tool_id) ? el('span', { class: 'tag best', text: 'Saved' }) : null,
         el('span', { class: 'tag', text: CAT[r.category].label }), r.hazard_severity === 'moderate' || r.hazard_severity === 'high' ? el('span', { class: 'tag sev-' + r.hazard_severity, text: 'take care' }) : null)));
 }
-const searchBox = (value, oninput) => el('label', { class: 'search' }, el('span', { html: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>' }), el('input', { type: 'search', placeholder: 'Search tools, videos, check-ins', value, 'aria-label': 'Search', oninput: (e) => oninput(e.target.value) }));
+const searchBox = (value, oninput) => el('label', { class: 'search' }, el('span', { html: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>' }), el('input', { type: 'search', placeholder: 'Search tools and how-tos', value, 'aria-label': 'Search', oninput: (e) => oninput(e.target.value) }));
 
 // ---------- controls
 function setIn(arr, v, on) { const i = arr.indexOf(v); if (on && i < 0) arr.push(v); if (!on && i >= 0) arr.splice(i, 1); refreshChrome(); }
@@ -495,13 +511,9 @@ const guideState = (g) => (!g.tool ? 'general' : toolPasses(g.tool) ? 'ok' : 'bl
 const guideRank = { ok: 0, general: 1, blocked: 2 };
 function guideRow(g) {
   const m = guideMeta(g), st = guideState(g);
-  return el('button', { class: 'item', onclick: () => go('guide', g.id) }, el('div', { class: 'tile', style: `background:${m.color}` }, ill(m.ill)),
-    el('div', { class: 'txt' }, el('b', { text: g.title }), el('span', { text: `${g.steps.length} steps · ${g.minutes} min read` }),
-      el('div', { class: 'row2', style: 'margin-top:4px' }, el('span', { class: 'tag plain', text: m.label }), st === 'blocked' ? el('span', { class: 'tag sev-moderate', text: 'not matched to you' }) : null)));
-}
-function guideCard(g) {
-  const m = guideMeta(g);
-  return el('button', { class: 'fcard', style: `background:${m.color};color:${onColor(m.color)}`, onclick: () => go('guide', g.id) }, el('b', { text: g.title }), el('span', { text: `${g.steps.length} steps` }), ill(m.ill));
+  return el('button', { class: 'grow', onclick: () => go('guide', g.id) },
+    el('div', { class: 'gnum', style: `background:${m.color};color:${onColor(m.color)}` }, el('b', { text: String(g.steps.length) }), el('small', { text: 'steps' })),
+    el('div', { class: 'txt' }, el('b', { text: g.title }), el('span', { text: `${g.minutes} min · ${m.label}` }), st === 'blocked' ? el('span', { class: 'tag sev-moderate', text: 'not matched to you' }) : null));
 }
 
 // ---------- articles: short, plain-language reading. General information, not advice for one person.
@@ -551,9 +563,8 @@ const ARTICLES = [
     points: ["Choose first, then simplify.", "Rest early, not late.", "It is fine to ask for help with the heavy parts."],
     cta: { text: "Build a daily routine", act: 'routine' } },
 ];
-const articleCard = (a) => el('button', { class: 'fcard', style: `background:${a.color};color:${onColor(a.color)}`, onclick: () => go('article', a.id) }, el('b', { text: a.title }), el('span', { text: `${a.minutes} min read` }), ill(a.ill));
-const articleRow = (a) => el('button', { class: 'item', onclick: () => go('article', a.id) }, el('div', { class: 'tile', style: `background:${a.color}` }, ill(a.ill)),
-  el('div', { class: 'txt' }, el('b', { text: a.title }), el('span', { text: a.summary }), el('div', { class: 'row2', style: 'margin-top:4px' }, el('span', { class: 'tag plain', text: a.topic }), el('span', { class: 'tag plain', text: `${a.minutes} min read` }))));
+const articleRow = (a) => el('button', { class: 'arow', onclick: () => go('article', a.id) },
+  el('span', { class: 'topic', text: a.topic }), el('b', { text: a.title }), el('span', { class: 'sum', text: a.summary }), el('span', { class: 'read', text: `${a.minutes} min read` }));
 const ARTICLE_ACTS = {
   visit: () => go('guide', 'g_visit'), routine: () => go('guide', 'g_routine'), categories: () => tab('categories'),
   checkins: () => { S.learnTab = 'checkins'; tab('learn'); }, bathing: () => go('category', 'bathing_toileting'),
@@ -721,22 +732,28 @@ const PAGES = {
         const arts = t ? ARTICLES.filter((x) => (x.title + ' ' + x.topic + ' ' + x.summary).toLowerCase().includes(t)) : [];
         const gds = t ? GUIDES.filter((x) => guideState(x) !== 'blocked' && (x.title.toLowerCase().includes(t) || guideMeta(x).label.toLowerCase().includes(t))) : [];
         if (r.length) box.append(el('div', { class: 'sec' }, el('h2', { text: `Tools · ${r.length}` }), el('div', { class: 'list' }, ...r.map((x, i) => toolItem(x, i === 0 && !t)))));
-        if (arts.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Articles' }), el('div', { class: 'list' }, ...arts.map(articleRow))));
+        if (arts.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Articles' }), el('div', { class: 'alist' }, ...arts.map(articleRow))));
         if (gds.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Guides' }), el('div', { class: 'list' }, ...gds.map(guideRow))));
         if (vids.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Videos' }), el('div', { class: 'list' }, ...vids.map((x) => videoNode(x, videoState(x, ids), true)))));
         if (checks.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Check-ins' }), ...checks.map((c) => checkinCard(c, all, true))));
         if (!r.length && !vids.length && !checks.length && !gds.length && !arts.length) box.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'Nothing safe matches that. Clear the search, or try a check-in in Learn to open more up.' }));
         return;
       }
-      // collage: featured carousel, videos, check-ins
+      // collage: best tools, then one Learn block
       if (recs.length) box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Best for you' }), el('button', { class: 'link', text: 'See all', onclick: () => go('category', '__best') })),
         el('div', { class: 'hscroll' }, ...recs.slice(0, 5).map((r) => { const c = CAT[r.category].color; return el('button', { class: 'fcard', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', r.tool_id) }, el('b', { text: r.name }), el('span', { text: CAT[r.category].label }), ill(r.category)); }))));
-      const gd = GUIDES.filter((x) => guideState(x) !== 'blocked').slice(0, 6);
-      if (gd.length) box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Step by step' }), el('button', { class: 'link', text: 'See all', onclick: () => { S.learnTab = 'guides'; tab('learn'); } })), el('div', { class: 'hscroll' }, ...gd.map(guideCard))));
-      box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Read' }), el('button', { class: 'link', text: 'See all', onclick: () => { S.learnTab = 'articles'; tab('learn'); } })), el('div', { class: 'hscroll' }, ...ARTICLES.map(articleCard))));
-      const vids = VIDEOS.filter((x) => videoState(x, ids) !== 'blocked').slice(0, 6);
-      if (vids.length) box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Watch and learn' }), el('button', { class: 'link', text: 'See all', onclick: () => tab('learn') })), el('div', { class: 'hscroll' }, ...vids.map((x) => videoNode(x, videoState(x, ids), false)))));
-      box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Check-ins' }), el('button', { class: 'link', text: 'See all', onclick: () => tab('learn') })), el('div', { class: 'hscroll' }, ...CHECKINS.map((c) => checkinCard(c, all, false)))));
+      // Learn: one tile per content type, each with its own pictogram and its own destination
+      const nGuides = GUIDES.filter((x) => guideState(x) !== 'blocked').length, nVideos = VIDEOS.filter((x) => videoState(x, ids) !== 'blocked').length;
+      const nDone = CHECKINS.filter((c) => { const inf = checkinInfo(c, all); return inf.done === inf.total; }).length;
+      const TYPES = [
+        ['guides', 'Guides', `${nGuides} step by step`, '#4FB8B0', '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.4 1.4L7 5M3.5 12l1.4 1.4L7 11M3.5 18l1.4 1.4L7 17"/>'],
+        ['articles', 'Articles', `${ARTICLES.length} short reads`, '#F6C56B', '<path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 8h3"/>'],
+        ['videos', 'Videos', `${nVideos} to watch`, '#C9A6D8', '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 9.5l4.5 2.5-4.5 2.5z"/>'],
+        ['checkins', 'Check-ins', `${nDone} of ${CHECKINS.length} done`, '#F4A6A0', '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/>'],
+      ];
+      box.append(el('div', { class: 'sec' }, el('h2', { text: 'Learn' }),
+        el('div', { class: 'ltiles' }, ...TYPES.map(([id, title, meta, color, icon]) => el('button', { class: 'ltile', style: `background:${color}`, onclick: () => { S.learnTab = id; tab('learn'); } },
+          el('span', { class: 'lico', html: `<svg viewBox="0 0 24 24">${icon}</svg>` }), el('b', { text: title }), el('span', { text: meta }))))));
     };
     v.append(searchBox(S.text, (t) => { S.text = t; draw(); }), box); draw();
   },
@@ -787,7 +804,7 @@ const PAGES = {
       } else if (S.learnTab === 'guides') {
         body.append(...[...GUIDES].sort((a, b) => guideRank[guideState(a)] - guideRank[guideState(b)]).map(guideRow));
       } else if (S.learnTab === 'articles') {
-        body.append(...ARTICLES.map(articleRow));
+        body.append(el('div', { class: 'alist' }, ...ARTICLES.map(articleRow)));
       } else {
         body.append(...CHECKINS.map((c) => checkinCard(c, all, true)));
       }
