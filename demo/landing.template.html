@@ -1,0 +1,193 @@
+<title>Ablewise</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column of short, loud sections. Hero = promise + real product. Every section ends in the same single action. */
+:root{
+  --bg:#FFFFFF; --soft:#F5F6FA; --ink:#141A2B; --muted:#5B647E; --line:#E7E9F1; --accent:#3D5AF1; --accent-ink:#FFFFFF; --accent-soft:#E9EDFF;
+  --ok:#1E8E5A; --ok-bg:#DDF3E8; --warn:#9A6200; --warn-bg:#FCEBC7; --bad:#B3261E; --bad-bg:#FBDCD9;
+  --f-display:'Bricolage Grotesque','DM Sans',system-ui,sans-serif; --f-body:'DM Sans',system-ui,sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55;padding-inline:20px;padding-block:0 84px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.02em;line-height:1.06}
+h1{font-size:clamp(40px,7.4vw,76px);font-weight:800} h2{font-size:clamp(28px,4.4vw,44px);font-weight:700} h3{font-size:20px;font-weight:700;line-height:1.2}
+p{margin:0}
+.wrap{max-width:1120px;margin-inline:auto}
+section{padding-block:72px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-size:12px}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+
+nav.top{display:flex;justify-content:space-between;align-items:center;padding-block:18px}
+.logo{font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:-.03em;display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo i{width:22px;height:22px;border-radius:7px;background:var(--accent);display:block;position:relative}
+.logo i::after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.7);right:-3px;top:-3px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:var(--accent-ink);font-weight:700;text-decoration:none;border-radius:999px;padding:14px 26px;font-size:17px;border:0;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:0 8px 24px rgba(61,90,241,.28)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(61,90,241,.34)}
+.btn.sm{padding:10px 18px;font-size:15px;box-shadow:none}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none;border:1.5px solid var(--line)}
+.btn.big{padding:18px 34px;font-size:19px}
+
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:40px;align-items:center;padding-block:40px 32px}
+.hero .copy{display:flex;flex-direction:column;gap:26px;align-items:flex-start}
+.hero p.sub{font-size:clamp(18px,2.2vw,21px);color:var(--muted);max-width:34em}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.fine{font-size:14px;color:var(--muted)}
+.hl{background:linear-gradient(transparent 62%,var(--accent-soft) 62%)}
+.phones{position:relative;height:640px;display:flex;justify-content:center;overflow-x:clip}
+.phone{position:absolute;width:290px;border-radius:38px;border:8px solid var(--ink);overflow:hidden;background:#fff;box-shadow:0 30px 70px rgba(20,26,43,.18)}
+.phone img{display:block;width:100%;height:auto}
+.phone.a{left:50%;top:0;transform:translateX(-88%) rotate(-3deg)} .phone.b{left:50%;top:70px;transform:translateX(-8%) rotate(3deg)}
+
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.cat{position:relative;overflow:hidden;border-radius:20px;min-height:110px;padding:18px;display:flex;flex-direction:column;justify-content:flex-end;font-family:var(--f-display);font-weight:700;font-size:19px;line-height:1.15}
+.cat::before,.cat::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.28)}
+.cat::before{width:100px;height:100px;right:-20px;top:-26px}.cat::after{width:44px;height:44px;right:52px;top:44px;background:rgba(255,255,255,.2)}
+.cat span{position:relative}
+.strip{display:flex;flex-direction:column;gap:20px}
+
+.band{background:var(--soft);border-radius:36px;padding:56px 40px}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:center}
+.stack{display:flex;flex-direction:column;gap:18px}
+.rule{display:flex;flex-direction:column;gap:4px;padding-top:18px;border-top:1.5px solid var(--line)}
+.rule b{font-family:var(--f-display);font-size:19px}
+.rule span{color:var(--muted)}
+.blocked{background:var(--bg);border-radius:24px;padding:22px;display:flex;flex-direction:column;gap:2px;box-shadow:0 20px 50px rgba(20,26,43,.08)}
+.brow{display:flex;flex-direction:column;gap:6px;padding:14px 0;border-top:1px solid var(--line)}
+.brow:first-of-type{border-top:0}
+.brow b{font-family:var(--f-display);font-size:17px}
+.brow .why{color:var(--muted);font-size:15px}
+.tag{align-self:flex-start;font-family:var(--f-mono);font-size:11px;border-radius:7px;padding:2px 8px}
+.tag.hard{background:var(--bad-bg);color:var(--bad)} .tag.unc{background:var(--warn-bg);color:var(--warn)} .tag.ok{background:var(--ok-bg);color:var(--ok)}
+.ok-row{display:flex;gap:10px;align-items:center;padding-top:14px;border-top:1px solid var(--line);font-weight:700}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.step{display:flex;flex-direction:column;gap:12px}
+.step .n{width:44px;height:44px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font-family:var(--f-display);font-weight:800;font-size:20px;display:grid;place-items:center}
+.step p{color:var(--muted)}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;text-align:left}
+.fact b{display:block;font-family:var(--f-display);font-size:clamp(40px,6vw,64px);line-height:1;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.fact span{color:var(--muted)}
+
+.faq{max-width:760px;margin-inline:auto;display:flex;flex-direction:column}
+details{border-top:1.5px solid var(--line);padding-block:18px}
+details:last-child{border-bottom:1.5px solid var(--line)}
+summary{cursor:pointer;font-family:var(--f-display);font-weight:700;font-size:20px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::after{content:"+";font-size:26px;line-height:1;color:var(--accent)}
+details[open] summary::after{content:"\2212"}
+details p{margin-top:10px;color:var(--muted)}
+
+.final{background:var(--accent);color:var(--accent-ink);border-radius:36px;padding:64px 32px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:22px;position:relative;overflow:hidden}
+.final::before,.final::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.12)}
+.final::before{width:320px;height:320px;right:-80px;top:-120px}.final::after{width:150px;height:150px;left:-40px;bottom:-60px}
+.final>*{position:relative}
+.final .btn{background:#fff;color:var(--accent);box-shadow:0 12px 30px rgba(0,0,0,.18)}
+.final .fine{color:rgba(255,255,255,.85)}
+footer{padding-block:32px 8px;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:6px;max-width:760px}
+
+.sticky{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:none;z-index:5}
+.sticky .btn{width:100%}
+@media(max-width:900px){
+  .hero,.split{grid-template-columns:minmax(0,1fr)} .phones{height:600px}
+  .cards{grid-template-columns:repeat(2,1fr)} .steps,.facts{grid-template-columns:minmax(0,1fr)}
+  .band{padding:36px 22px;border-radius:28px} section{padding-block:52px}
+}
+@media(max-width:600px){.sticky{display:block}.nav-cta{display:none}.phone{width:196px}.phone.a{transform:translateX(-84%) rotate(-3deg)}.phone.b{transform:translateX(-16%) rotate(3deg);top:56px}.phones{height:470px}.cta-row .btn.ghost{display:none}}
+@media (prefers-reduced-motion:reduce){.btn{transition:none}}
+</style>
+
+<div class="wrap">
+  <nav class="top" aria-label="Main">
+    <a class="logo" href="#top"><i></i>Ablewise</a>
+    <a class="btn sm nav-cta" href="__DEMO_URL__">Try it free</a>
+  </nav>
+
+  <header class="hero" id="top">
+    <div class="copy">
+      <div class="label">Assistive tools and everyday workarounds</div>
+      <h1>The right tool for the task. <span class="hl">Never an unsafe one.</span></h1>
+      <p class="sub">Tell us what is hard. Ablewise matches tools and workarounds to your body, your home and your tech, and rules out anything you cannot use safely before it ranks a single option.</p>
+      <div class="cta-row">
+        <a class="btn big" href="__DEMO_URL__">Try it free</a>
+        <a class="btn ghost big" href="#safety">See how it decides</a>
+      </div>
+      <p class="fine">No card. No account. Runs in your browser.</p>
+    </div>
+    <div class="phones" aria-label="Screens from the app">
+      <div class="phone a"><img alt="Home screen: categories of safe options for the person's goals" src="__IMG_HOME__"></div>
+      <div class="phone b"><img alt="Safety screen: tools kept out, with the reason for each" src="__IMG_SAFETY__"></div>
+    </div>
+  </header>
+
+  <section class="strip" aria-label="What it covers">
+    <div class="label">Start from what you want to do</div>
+    <div class="cards">
+      <div class="cat" style="background:#F28C4B;color:#141A2B"><span>Kitchen &amp; meals</span></div>
+      <div class="cat" style="background:#C9A6D8;color:#141A2B"><span>Dressing &amp; grooming</span></div>
+      <div class="cat" style="background:#5B8FD4;color:#fff"><span>Bathing &amp; toileting</span></div>
+      <div class="cat" style="background:#6CC7A2;color:#141A2B"><span>Medication</span></div>
+    </div>
+  </section>
+
+  <section id="safety">
+    <div class="band split">
+      <div class="stack">
+        <div class="label">Why it is different</div>
+        <h2>Most apps rank first. We disqualify first.</h2>
+        <p class="fine" style="font-size:17px">A tool that is a great fit on paper can still hurt someone. So the safety checks run before ranking, and ranking can never bring a blocked tool back.</p>
+        <div class="rule"><b>Not sure counts as no.</b><span>If an ability, a risk or a fact about your home has not been confirmed, the tool stays out.</span></div>
+        <div class="rule"><b>Your home has to say yes.</b><span>No confirmed wall blocking, no grab bar. Gas hob, no stove shut-off. Loose rugs, no walker.</span></div>
+        <div class="rule"><b>Shown, not hidden.</b><span>Every excluded tool comes with the exact reason, so you and your therapist can check it.</span></div>
+      </div>
+      <div class="blocked" aria-label="Example of excluded tools">
+        <div class="label" style="margin-bottom:8px">Kept out for this person</div>
+        <div class="brow"><b>Reacher / grabber</b><span class="tag hard">CONTRAINDICATED</span><span class="why">High fall risk. Reaching forward while standing is not safe for this person.</span></div>
+        <div class="brow"><b>Wall-anchored grab bar</b><span class="tag hard">CAPACITY_BELOW_DEMAND</span><span class="why">Grip strength 2, needs 3. High-hazard tools get an extra safety margin.</span></div>
+        <div class="brow"><b>Under-cabinet jar opener</b><span class="tag unc">ENV_REQUIREMENT_UNCONFIRMED</span><span class="why">Nobody has confirmed drilling into the cabinet is allowed.</span></div>
+        <div class="ok-row"><span class="tag ok">PASSED</span> One-handed rocker knife, sock aid, pill organizer</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stack" style="gap:36px">
+    <div class="stack"><div class="label">How it works</div><h2>Three minutes to a short, safe list.</h2></div>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>Say what is hard</h3><p>Cutting food, getting into the shower, remembering pills. Pick the tasks that matter.</p></div>
+      <div class="step"><div class="n">2</div><h3>Confirm your situation</h3><p>Your abilities on a bad day, your home, your tech skills. Skip anything and we treat it as unconfirmed.</p></div>
+      <div class="step"><div class="n">3</div><h3>Get only what passes</h3><p>A ranked list of tools and workarounds you can use safely, and a plain reason for everything left out.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="facts">
+      <div class="fact"><b>7</b><span>safety checks run before any ranking</span></div>
+      <div class="fact"><b>19</b><span>abilities considered: physical, sensory, cognitive, communication</span></div>
+      <div class="fact"><b>0</b><span>tools shown that failed a check. This is tested against 3,000 random profiles.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="faq">
+      <h2 style="margin-bottom:28px">Straight answers</h2>
+      <details><summary>Is this medical advice?</summary><p>No. It is decision support for choosing everyday tools. It does not diagnose or treat anything, and it does not replace an occupational therapist.</p></details>
+      <details><summary>Are the tools reviewed by clinicians?</summary><p>The product is built so that no tool can be recommended until a clinician has reviewed it. The tools in the preview are unreviewed examples, so treat them as a demonstration of how matching works.</p></details>
+      <details><summary>Is this rehab or fitness?</summary><p>No. It is about compensating and adapting: the tool or workaround that makes the task doable today, not exercises to get you stronger.</p></details>
+      <details><summary>What does it cost?</summary><p>The preview is free to try, with no card and no account. Pricing has not been set.</p></details>
+      <details><summary>What if I do not know my abilities?</summary><p>Leave them as not assessed. The app then tells you which single question would unlock the most tools, and never assumes the answer is yes.</p></details>
+    </div>
+  </section>
+
+  <section>
+    <div class="final">
+      <h2 style="max-width:16em">See your safe options in a few minutes.</h2>
+      <a class="btn big" href="__DEMO_URL__">Try it free</a>
+      <p class="fine">No card. No account. Runs in your browser.</p>
+    </div>
+    <footer>
+      <span>Ablewise is a working name. Decision support only, not a medical device, and not a substitute for assessment by a qualified occupational therapist.</span>
+    </footer>
+  </section>
+</div>
+<div class="sticky"><a class="btn" href="__DEMO_URL__">Try it free</a></div>
