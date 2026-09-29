@@ -280,10 +280,6 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .billboard h1{font-size:26px;-webkit-line-clamp:4}
 .gcard{width:248px;background:var(--surface);gap:10px;align-items:flex-start;padding:14px}
 .gcard>b{font-family:var(--f-display);font-size:17px;line-height:1.2}
-.gsteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;width:100%}
-.gsteps li{display:flex;gap:9px;align-items:center;font-size:13.5px;color:var(--ink);min-width:0}
-.gsteps li span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gn{flex:none;width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700}
 .gmore{font-size:12px;color:var(--muted);margin-top:auto}
 .billboard{flex-direction:row;align-items:center;gap:8px;padding:20px 16px 20px 20px;min-height:0}
 .bbtext{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
@@ -295,6 +291,10 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .billboard{padding:18px 12px 18px 20px}
 .bbtext>h1,.bbtext>p,.bbtext>.label{max-width:none}
 .bbtn{font-size:13.5px;padding:9px 15px}
+.gcard{width:230px;gap:12px}
+.gdots{display:flex;gap:5px;width:100%}
+.gdots i{flex:1;max-width:34px;height:6px;border-radius:3px;display:block}
+.gmore{margin-top:0}
 </style>
 
 <div class="stage">
@@ -803,7 +803,7 @@ const PAGES = {
 
       const row = (title, more, cards) => el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: title }), more ? el('button', { class: 'link', text: 'See all', onclick: more }) : null), el('div', { class: 'hscroll' }, ...cards));
       const toLearn = (t) => () => { S.learnTab = t; tab('learn'); };
-      const gcard = (g) => { const m = guideMeta(g); return el('button', { class: 'gcard', onclick: () => go('guide', g.id) }, el('b', { text: g.title }), el('ol', { class: 'gsteps' }, ...g.steps.slice(0, 3).map((x, i) => el('li', {}, el('span', { class: 'gn', style: `background:${m.color};color:${onColor(m.color)}`, text: String(i + 1) }), el('span', { text: x.t })))), el('span', { class: 'gmore', text: `+${g.steps.length - 3} more steps \u00b7 ${g.minutes} min` })); };
+      const gcard = (g) => { const m = guideMeta(g); return el('button', { class: 'gcard', onclick: () => go('guide', g.id) }, el('b', { text: g.title }), el('div', { class: 'gdots', 'aria-hidden': 'true' }, ...g.steps.map(() => el('i', { style: `background:${m.color}` }))), el('span', { class: 'gmore', text: `${g.steps.length} steps \u00b7 ${g.minutes} min` })); };
       const rcard = (a) => el('button', { class: 'rcard', onclick: () => go('article', a.id) }, el('span', { class: 'topic', text: a.topic }), el('b', { text: a.title }), el('span', { class: 'read', text: `${a.minutes} min read` }));
 
       if (recs.length) box.append(row('Top picks for you', () => go('category', '__best'), recs.slice(0, 8).map((r) => { const c = CAT[r.category].color; return el('button', { class: 'poster', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', r.tool_id) }, el('b', { text: r.name }), ill(r.category)); })));
