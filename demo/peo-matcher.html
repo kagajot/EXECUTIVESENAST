@@ -211,6 +211,9 @@ main#view[data-page="learn"]{background:transparent url("data:image/svg+xml,%3Cs
 main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 390 260%22 preserveAspectRatio=%22none%22%3E%0A%3Cpath d=%22M0 0H390V196C334 226 282 176 212 194C138 214 76 250 0 214Z%22 fill=%22%23FEF5E8%22/%3E%0A%3Cpath d=%22M0 0H390V150C340 178 288 128 214 148C140 168 80 206 0 174Z%22 fill=%22%23FDEBD3%22/%3E%0A%3C/svg%3E") 0 0/100% 260px no-repeat;background-attachment:local}
 .foot{background:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,.94) 42%)}
 @media (max-width:520px){body{background:#fff}}
+.herocard p{-webkit-line-clamp:4}
+.herocard h2{-webkit-line-clamp:4}
+.herocard h2,.herocard p{display:block;-webkit-line-clamp:unset;overflow:visible}
 </style>
 
 <div class="stage">
@@ -862,9 +865,9 @@ const PAGES = {
       v.append(el('button', { class: 'herocard', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', top.tool_id) },
         el('span', { class: 'label', style: 'color:inherit;opacity:.75', text: 'Best match for you' }), el('h2', { text: top.name }), el('p', { text: top.summary }), el('span', { class: 'herobtn', text: 'See how it fits' }), ill(top.category)));
     } else {
-      v.append(el('button', { class: 'herocard', style: `background:${FEATURED_COLOR};color:#141A2B`, onclick: toChecks },
-        el('span', { class: 'label', style: 'color:inherit;opacity:.75', text: 'Getting started' }), el('h2', { text: S.review ? 'Nothing can be shown yet' : 'Your first options are one check-in away' }),
-        el('p', { text: S.review ? 'Clinician review is required and no catalogue entry has been reviewed.' : 'Answer a few questions and safe tools will appear here.' }), el('span', { class: 'herobtn', text: 'Start a check-in' }), ill('featured')));
+      v.append(el('button', { class: 'herocard', style: `background:#5B8FD4;color:${onColor('#5B8FD4')}`, onclick: toChecks },
+        el('span', { class: 'label', style: 'color:inherit;opacity:.75', text: 'Getting started' }), el('h2', { text: S.review ? 'Nothing can be shown yet' : 'Your first options start here' }),
+        el('p', { text: S.review ? 'Clinician review is required and no catalogue entry has been reviewed.' : 'Answer a few questions to see safe tools.' }), el('span', { class: 'herobtn', text: 'Start a check-in' }), ill('bulb')));
     }
 
     // browse by area: round shortcuts
