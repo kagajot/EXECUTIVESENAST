@@ -713,6 +713,7 @@ const ILL = {
   hand: `<rect x="30" y="46" width="46" height="44" rx="16" fill="#fff" opacity=".93"/><rect x="31" y="20" width="11" height="34" rx="5.5" fill="#fff" opacity=".93"/><rect x="45" y="12" width="11" height="42" rx="5.5" fill="#fff" opacity=".93"/><rect x="59" y="20" width="11" height="34" rx="5.5" fill="#fff" opacity=".93"/><rect x="72" y="44" width="10" height="26" rx="5" transform="rotate(25 77 57)" fill="#fff" opacity=".93"/>${face(53, 68, '#8A5A00')}`,
   eye: `<ellipse cx="50" cy="50" rx="40" ry="27" fill="#fff" opacity=".93"/><circle cx="50" cy="50" r="18" fill="#2F5FA8"/><circle cx="50" cy="50" r="8.5" fill="#141A2B"/><circle cx="44" cy="44" r="3.6" fill="#fff"/><path d="M40 86 Q50 94 60 86" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>`,
   bulb: `<path d="M50 12a27 27 0 0 0-15 49v11h30V61A27 27 0 0 0 50 12Z" fill="#fff" opacity=".93"/><rect x="38" y="76" width="24" height="8" rx="4" fill="#2E8F89"/><rect x="42" y="87" width="16" height="6" rx="3" fill="#2E8F89"/>${face(50, 40, '#2E8F89')}`,
+  bulbWarm: `<path d="M50 12a27 27 0 0 0-15 49v11h30V61A27 27 0 0 0 50 12Z" fill="#fff" opacity=".93"/><rect x="38" y="76" width="24" height="8" rx="4" fill="#C98A2B"/><rect x="42" y="87" width="16" height="6" rx="3" fill="#C98A2B"/>${face(50, 40, '#8A5A00')}`,
   bubble: `<path d="M18 20h64a11 11 0 0 1 11 11v34a11 11 0 0 1-11 11H52L34 94V76H18A11 11 0 0 1 7 65V31A11 11 0 0 1 18 20Z" fill="#fff" opacity=".93"/>${face(50, 48, '#8A2F3A')}`,
   house: `<path d="M50 10L10 44h11v42a4 4 0 0 0 4 4h50a4 4 0 0 0 4-4V44h11Z" fill="#fff" opacity=".93"/><rect x="41" y="68" width="18" height="22" rx="4" fill="#3C9E7B"/>${face(50, 52, '#1F6B52')}`,
   shield: `<path d="M50 8 86 22v27c0 23-15 37-36 45C29 86 14 72 14 49V22Z" fill="#fff" opacity=".93"/>${face(50, 48, '#5B3F6E')}`,
@@ -866,9 +867,9 @@ const PAGES = {
       v.append(el('button', { class: 'herocard', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', top.tool_id) },
         el('span', { class: 'label', style: 'color:inherit;opacity:.75', text: 'Best match for you' }), el('h2', { text: top.name }), el('p', { text: top.summary }), el('span', { class: 'herobtn', text: 'See how it fits' }), ill(top.category)));
     } else {
-      v.append(el('button', { class: 'herocard', style: `background:#4FB8B0;color:${onColor('#4FB8B0')}`, onclick: toChecks },
+      v.append(el('button', { class: 'herocard', style: `background:#FCD59A;color:${onColor('#FCD59A')}`, onclick: toChecks },
         el('span', { class: 'label', style: 'color:inherit;opacity:.75', text: 'Getting started' }), el('h2', { text: S.review ? 'Nothing can be shown yet' : 'Your first options start here' }),
-        el('p', { text: S.review ? 'Clinician review is required and no catalogue entry has been reviewed.' : 'Answer a few questions to see safe tools.' }), el('span', { class: 'herobtn', text: 'Start a check-in' }), ill('bulb')));
+        el('p', { text: S.review ? 'Clinician review is required and no catalogue entry has been reviewed.' : 'Answer a few questions to see safe tools.' }), el('span', { class: 'herobtn', text: 'Start a check-in' }), ill('bulbWarm')));
     }
 
     // browse by area: round shortcuts
