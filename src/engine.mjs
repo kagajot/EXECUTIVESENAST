@@ -67,7 +67,7 @@ export function evaluateGates(tool, profile, opts = DEFAULTS) {
     }
     const need = Math.min(4, d.min + (d.critical ? opts.safetyMargin[sev] ?? 0 : 0));
     if (cap < need) {
-      fails.push(F('G3_CAPACITY', 'CAPACITY_BELOW_DEMAND', 'hard', `${dim} ${cap} < required ${need}${need > d.min ? ` (min ${d.min} + safety margin)` : ''}`, { target: dim }));
+      fails.push(F('G3_CAPACITY', 'CAPACITY_BELOW_DEMAND', 'hard', `${dim} ${cap} < required ${need}${need > d.min ? ` (min ${d.min} + safety margin)` : ''}`, { target: dim, have: cap, need, min: d.min }));
     }
   }
 

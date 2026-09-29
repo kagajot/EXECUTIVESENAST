@@ -140,3 +140,10 @@ test('Deterministic: same input -> identical output', () => {
   const p = clone(profiles.post_stroke_left_hemiparesis);
   assert.deepEqual(run(p), run(clone(p)));
 });
+
+test('Capacity failures carry structured have/need/min so the UI never parses strings', () => {
+  const p = fullProfile(['shower_transfer']); p.environment.confirmed_tags = ['structural_modification_permitted', 'wall_blocking_present', 'helper_available_for_setup'];
+  p.person.capacities.grip_strength = 2;
+  const f = run(p).excluded.find((e) => e.tool_id === 'installed_grab_bar').failures.find((x) => x.code === 'CAPACITY_BELOW_DEMAND');
+  assert.deepEqual({ have: f.have, need: f.need, min: f.min, target: f.target }, { have: 2, need: 3, min: 2, target: 'grip_strength' });
+});
