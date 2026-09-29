@@ -215,6 +215,13 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .herocard h2{-webkit-line-clamp:4}
 .herocard h2,.herocard p{display:block;-webkit-line-clamp:unset;overflow:visible}
 .chk .ill{bottom:auto;top:50%;transform:translateY(-50%);right:12px}
+.seg2{grid-template-columns:repeat(3,1fr)}
+.steps{display:flex;flex-direction:column;gap:18px}
+.step{display:flex;gap:14px;align-items:flex-start}
+.num{flex:none;width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;margin-top:1px}
+.step b{display:block;font-size:17px;line-height:1.25}
+.step p{margin:3px 0 0;color:var(--muted);font-size:15px;line-height:1.45}
+.box.warnbox{background:var(--warn-bg)} .box.warnbox h3{color:var(--warn)} .box.warnbox .check span{color:var(--ink)}
 </style>
 
 <div class="stage">
@@ -616,6 +623,7 @@ const TABS = [['home', 'Home'], ['explore', 'Explore'], ['categories', 'Categori
 function tab(name) { S.stack = [{ page: name }]; render(); }
 function go(page, arg) { S.stack.push({ page, arg }); render(); }
 function back() { if (S.stack.length > 1) S.stack.pop(); render(); }
+function openSummary() { S.stack = [{ page: 'profile' }, { page: 'summary' }]; render(); }
 function exploreWith(f) { S.chips = f.chips ?? []; S.text = f.text ?? ''; S.task = f.task ?? null; tab('explore'); }
 const TITLES = { p_goals: 'What I want to do', p_caps: 'Abilities', p_risk: 'Risk screening', p_tech: 'Tech and budget', p_env: 'My home', p_settings: 'Settings', summary: 'Summary for my therapist' };
 function render() {
@@ -744,6 +752,87 @@ function videoNode(v, state, row) {
   const meta = el('div', { class: 'row2' }, el('span', { class: 'tag plain', text: row ? v.label : c.label }), state === 'blocked' ? el('span', { class: 'tag sev-moderate', text: 'not matched to you' }) : null);
   if (row) return el('a', { class: 'vrow', ...a, 'aria-label': v.title + ' (opens YouTube)' }, thumb, el('div', { class: 'txt' }, el('b', { text: v.title }), meta, null));
   return el('a', { class: 'vcard', ...a, 'aria-label': v.title + ' (opens YouTube)' }, thumb, el('b', { text: v.title }), meta);
+}
+
+// ---------- step-by-step guides: short written instructions. General practice, not a fitting: the therapist's advice comes first.
+const GUIDES = [
+  { id: 'g_sock', title: "Put on socks with a sock aid", category: 'self_care', tool: 'sock_aid', minutes: 2,
+    steps: [
+      { t: "Sit down first", d: "Use a firm chair with arms. Put your feet flat on the floor and keep the sock aid within reach." },
+      { t: "Load the sock", d: "Slide the sock over the aid with the toe at the tip. Pull it up so there are no wrinkles." },
+      { t: "Drop the aid", d: "Hold the straps and lay the aid on the floor in front of your foot, opening towards you." },
+      { t: "Slide your foot in", d: "Push your toes to the end of the aid, into the toe of the sock." },
+      { t: "Pull it up", d: "Pull the straps steadily back and up until the sock covers your heel and the aid slides free. Smooth the sock." } ],
+    watch: ["If leaning forward makes you dizzy or unsteady, stop and ask your therapist for another way."] },
+  { id: 'g_button', title: "Fasten buttons with a button hook", category: 'self_care', tool: 'button_hook_zip_pull', minutes: 2,
+    steps: [
+      { t: "Get comfortable", d: "Sit down and lay the garment where the buttonhole edge is easy to reach." },
+      { t: "Push the loop through", d: "Put the wire loop through the buttonhole from the front." },
+      { t: "Catch the button", d: "Hook the button inside the loop." },
+      { t: "Pull it back", d: "Draw the loop back through the hole. The button comes with it." },
+      { t: "Slip the loop off", d: "Release the button. Start with the lowest button so the rest line up." } ],
+    watch: [] },
+  { id: 'g_knife', title: "Cut food with a rocker knife", category: 'eating_kitchen', tool: 'rocker_knife', minutes: 2,
+    steps: [
+      { t: "Stop things sliding", d: "Put a non-slip mat under the board or plate." },
+      { t: "Hold it safely", d: "Grip the handle with your whole hand. Keep the blade pointing away from you and your other hand." },
+      { t: "Rock, do not saw", d: "Rest the curved blade on the food and press down with a gentle rocking motion. Let the blade do the work." },
+      { t: "Steady the food", d: "If you use your other hand, hold the food with a fork so your fingers stay clear." },
+      { t: "Put it away", d: "Wash the knife with the blade facing away from you and store it in a block or sleeve." } ],
+    watch: ["If your grip slips or your hand shakes, stop and ask someone to help."] },
+  { id: 'g_pills', title: "Set up a weekly pill organizer", category: 'medication_health', tool: 'pill_organizer_alarm', minutes: 3,
+    steps: [
+      { t: "Start from the list", d: "Ask your pharmacist or clinician for a current list of what to take and when." },
+      { t: "Pick one time and place", d: "Fill it once a week, in good light, at the same table, with the list beside you." },
+      { t: "One day at a time", d: "Check each compartment against the list before moving on to the next." },
+      { t: "Get the first fill checked", d: "Ask a helper or your pharmacist to look over it." },
+      { t: "Match the alarms", d: "Set alarms for the dose times and keep the organizer where you will see it, for example next to breakfast." } ],
+    watch: ["If you are not sure whether you took a dose, do not take another. Ask your pharmacist."] },
+  { id: 'g_calendar', title: "Set up a wall calendar routine", category: 'memory_planning', tool: 'paper_wall_calendar', minutes: 2,
+    steps: [
+      { t: "Choose one spot", d: "Pick a place you pass every day, at eye level." },
+      { t: "Write it big", d: "Add each appointment in large print with the time and place." },
+      { t: "Add a daily board", d: "Use a whiteboard beside it for the three main things today." },
+      { t: "Check at a fixed time", d: "Look at it at the same point each day, for example with breakfast." },
+      { t: "Reset in the evening", d: "Cross off what is done and write up tomorrow." } ],
+    watch: [] },
+  { id: 'g_bench', title: "Use a tub transfer bench", category: 'bathing_toileting', tool: 'tub_transfer_bench', minutes: 3,
+    steps: [
+      { t: "Check the bench", d: "Two legs inside the tub and two outside, rubber feet intact, and nothing wobbling." },
+      { t: "Sit down outside the tub", d: "Sit on the outer end of the bench with your back towards it. Use the arm or the wall for support." },
+      { t: "Bring your legs over", d: "Lift one leg at a time over the tub wall. A helper can lift them if needed." },
+      { t: "Slide across", d: "Move along the bench, keeping your weight on it, until you are under the shower." },
+      { t: "Reverse to get out", d: "Slide back, bring your legs out one at a time, then stand only when you are fully outside the tub." } ],
+    watch: ["Have someone with you the first several times.", "Never stand on the bench or stand in the tub while it is wet."] },
+  { id: 'g_routine', title: "Build a daily routine you can follow", category: 'memory_planning', minutes: 2,
+    steps: [
+      { t: "Pick three to five things", d: "Choose what matters most each day, not everything." },
+      { t: "Attach each to a habit", d: "Link it to something you already do, like after breakfast or before bed." },
+      { t: "Leave a cue", d: "Put a note, a photo or the item itself where the task happens." },
+      { t: "Keep it the same", d: "Repeat it unchanged for two weeks before you adjust anything." },
+      { t: "Ask someone to check in", d: "A short call or a look at the list keeps it going." } ],
+    watch: [] },
+  { id: 'g_visit', title: "Get ready for a visit with your therapist", minutes: 2, action: 'summary',
+    steps: [
+      { t: "Name the hardest tasks", d: "Write down what is hardest and one recent example of each." },
+      { t: "Bring your summary", d: "The Profile tab has a summary of your answers and results you can copy and print." },
+      { t: "List what you already use", d: "Include tools, workarounds and help from other people." },
+      { t: "Mention risks", d: "Note any falls, dizziness, pain, skin problems or near misses." },
+      { t: "Bring your questions", d: "Write them down so you do not forget them in the room." } ],
+    watch: [] },
+];
+const guideMeta = (g) => (g.category ? { label: CAT[g.category].label, color: CAT[g.category].color, ill: g.category } : { label: 'General', color: '#C9A6D8', ill: 'shield' });
+const guideState = (g) => (!g.tool ? 'general' : toolPasses(g.tool) ? 'ok' : 'blocked');
+const guideRank = { ok: 0, general: 1, blocked: 2 };
+function guideRow(g) {
+  const m = guideMeta(g), st = guideState(g);
+  return el('button', { class: 'item', onclick: () => go('guide', g.id) }, el('div', { class: 'tile', style: `background:${m.color}` }, ill(m.ill)),
+    el('div', { class: 'txt' }, el('b', { text: g.title }), el('span', { text: `${g.steps.length} steps · ${g.minutes} min read` }),
+      el('div', { class: 'row2', style: 'margin-top:4px' }, el('span', { class: 'tag plain', text: m.label }), st === 'blocked' ? el('span', { class: 'tag sev-moderate', text: 'not matched to you' }) : null)));
+}
+function guideCard(g) {
+  const m = guideMeta(g);
+  return el('button', { class: 'fcard', style: `background:${m.color};color:${onColor(m.color)}`, onclick: () => go('guide', g.id) }, el('b', { text: g.title }), el('span', { text: `${g.steps.length} steps` }), ill(m.ill));
 }
 
 // ---------- check-ins (assessments): each one is a focused set of the questions the engine needs
@@ -905,15 +994,19 @@ const PAGES = {
         const t = S.text.trim().toLowerCase();
         const vids = t ? VIDEOS.filter((x) => videoState(x, ids) !== 'blocked' && (x.title.toLowerCase().includes(t) || CAT[x.category].label.toLowerCase().includes(t))) : [];
         const checks = t ? CHECKINS.filter((c) => c.title.toLowerCase().includes(t)) : [];
+        const gds = t ? GUIDES.filter((x) => guideState(x) !== 'blocked' && (x.title.toLowerCase().includes(t) || guideMeta(x).label.toLowerCase().includes(t))) : [];
         if (r.length) box.append(el('div', { class: 'sec' }, el('h2', { text: `Tools · ${r.length}` }), el('div', { class: 'list' }, ...r.map((x, i) => toolItem(x, i === 0 && !t)))));
+        if (gds.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Guides' }), el('div', { class: 'list' }, ...gds.map(guideRow))));
         if (vids.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Videos' }), el('div', { class: 'list' }, ...vids.map((x) => videoNode(x, videoState(x, ids), true)))));
         if (checks.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Check-ins' }), ...checks.map((c) => checkinCard(c, all, true))));
-        if (!r.length && !vids.length && !checks.length) box.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'Nothing safe matches that. Clear the search, or try a check-in in Learn to open more up.' }));
+        if (!r.length && !vids.length && !checks.length && !gds.length) box.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'Nothing safe matches that. Clear the search, or try a check-in in Learn to open more up.' }));
         return;
       }
       // collage: featured carousel, videos, check-ins
       if (recs.length) box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Best for you' }), el('button', { class: 'link', text: 'See all', onclick: () => go('category', '__best') })),
         el('div', { class: 'hscroll' }, ...recs.slice(0, 5).map((r) => { const c = CAT[r.category].color; return el('button', { class: 'fcard', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', r.tool_id) }, el('b', { text: r.name }), el('span', { text: CAT[r.category].label }), ill(r.category)); }))));
+      const gd = GUIDES.filter((x) => guideState(x) !== 'blocked').slice(0, 6);
+      if (gd.length) box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Step by step' }), el('button', { class: 'link', text: 'See all', onclick: () => { S.learnTab = 'guides'; tab('learn'); } })), el('div', { class: 'hscroll' }, ...gd.map(guideCard))));
       const vids = VIDEOS.filter((x) => videoState(x, ids) !== 'blocked').slice(0, 6);
       if (vids.length) box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Watch and learn' }), el('button', { class: 'link', text: 'See all', onclick: () => tab('learn') })), el('div', { class: 'hscroll' }, ...vids.map((x) => videoNode(x, videoState(x, ids), false)))));
       box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Check-ins' }), el('button', { class: 'link', text: 'See all', onclick: () => tab('learn') })), el('div', { class: 'hscroll' }, ...CHECKINS.map((c) => checkinCard(c, all, false)))));
@@ -948,6 +1041,8 @@ const PAGES = {
     if (tasks.length) { const row = el('div', { class: 'bubbles' }, ...tasks.map(([tid, t]) => el('button', { class: 'bubble', 'aria-pressed': 'false', text: t.label, onclick: (e) => { task = task === tid ? null : tid; [...row.children].forEach((b) => b.setAttribute('aria-pressed', 'false')); if (task) e.currentTarget.setAttribute('aria-pressed', 'true'); draw(); } }))); v.append(row); }
     v.append(list); draw();
     if (out.length) v.append(el('p', { class: 'muted', style: 'font-size:13px', text: `${out.length} tool${out.length === 1 ? '' : 's'} in this category ${out.length === 1 ? 'does' : 'do'} not pass the safety checks for you yet.` }));
+    const gd = GUIDES.filter((x) => (best || x.category === id) && guideState(x) !== 'blocked');
+    if (gd.length) v.append(el('div', { class: 'sec' }, el('h2', { text: 'Step by step' }), el('div', { class: 'list' }, ...gd.map(guideRow))));
     const vids = VIDEOS.filter((x) => (best || x.category === id) && videoState(x, ids) !== 'blocked');
     if (vids.length) v.append(el('div', { class: 'sec' }, el('h2', { text: 'Watch and learn' }), ...vids.map((x) => videoNode(x, videoState(x, ids), true))));
   },
@@ -962,12 +1057,24 @@ const PAGES = {
       if (S.learnTab === 'videos') {
         const rank = { ok: 0, general: 1, blocked: 2 };
         body.append(...[...VIDEOS].sort((a, b) => rank[videoState(a, ids)] - rank[videoState(b, ids)]).map((x) => videoNode(x, videoState(x, ids), true)));
+      } else if (S.learnTab === 'guides') {
+        body.append(...[...GUIDES].sort((a, b) => guideRank[guideState(a)] - guideRank[guideState(b)]).map(guideRow));
       } else {
         body.append(...CHECKINS.map((c) => checkinCard(c, all, true)));
       }
     };
-    for (const [t, l] of [['videos', 'Videos'], ['checkins', 'Check-ins']]) seg.append(el('button', { 'data-t': t, text: l, onclick: () => { S.learnTab = t; draw(); } }));
+    for (const [t, l] of [['videos', 'Videos'], ['guides', 'Guides'], ['checkins', 'Check-ins']]) seg.append(el('button', { 'data-t': t, text: l, onclick: () => { S.learnTab = t; draw(); } }));
     v.append(seg, body); draw();
+  },
+
+  guide(v, id) {
+    const g = GUIDES.find((x) => x.id === id), m = guideMeta(g), st = guideState(g);
+    v.append(el('div', { class: 'catbig', style: `background:${m.color};color:${onColor(m.color)}` }, el('h1', { text: g.title }), el('span', { text: `${g.steps.length} steps · ${g.minutes} min read` }), ill(m.ill)));
+    if (st === 'blocked') { v.append(el('div', { class: 'empty', text: 'This tool does not pass the safety checks for you yet. Ask your therapist about it.' })); return; }
+    v.append(el('div', { class: 'steps' }, ...g.steps.map((x, i) => el('div', { class: 'step' }, el('span', { class: 'num', text: String(i + 1) }), el('div', {}, el('b', { text: x.t }), el('p', { text: x.d }))))));
+    if (g.watch.length) v.append(el('div', { class: 'box warnbox' }, el('h3', { text: 'Watch out' }), ...g.watch.map((w) => el('div', { class: 'check warn' }, el('i', { text: '!' }), el('span', { text: w })))));
+    if (g.tool) v.append(el('button', { class: 'btn', text: 'See the tool', onclick: () => go('tool', g.tool) }));
+    if (g.action === 'summary') v.append(el('button', { class: 'btn', text: 'Open my summary', onclick: openSummary }));
   },
 
   checkin(v, id) {
