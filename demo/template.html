@@ -295,6 +295,15 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .gdots{display:flex;gap:5px;width:100%}
 .gdots i{flex:1;max-width:34px;height:6px;border-radius:3px;display:block}
 .gmore{margin-top:0}
+.mcard{flex:none;width:216px;height:172px;border:0;border-radius:18px;overflow:hidden;background:var(--surface);text-align:left;cursor:pointer;display:flex;flex-direction:column;padding:0;scroll-snap-align:start;text-decoration:none;color:inherit}
+.mtop{position:relative;flex:none;height:88px;padding:10px}
+.mtop .ill{position:absolute;right:6px;bottom:-14px;width:84px;height:84px;pointer-events:none}
+.mtop .play{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%)}
+.tbadge{position:relative;z-index:1;display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.9);color:var(--ink);border-radius:999px;padding:4px 10px 4px 7px;font-size:11.5px;font-weight:700}
+.tbadge svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mbody{flex:1;min-height:0;padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px}
+.mbody b{font-family:var(--f-display);font-size:15.5px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mbody span{margin-top:auto;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 
 <div class="stage">
@@ -801,20 +810,31 @@ const PAGES = {
         el('h1', { text: feat.title }), el('p', { text: `${feat.steps.length} steps · ${feat.minutes} min read` }),
         el('div', { class: 'bbtns' }, el('button', { class: 'bbtn solid', text: 'Start guide', onclick: () => go('guide', feat.id) }), fvid ? el('a', { class: 'bbtn line', href: fvid.url, target: '_blank', rel: 'noopener noreferrer', text: 'Watch video' }) : null)), ill(fm.ill)));
 
+      // One card frame for every row: same size, same layout. The type is told by a badge (icon + label), not by a different shape.
+      const TYPE_ICON = {
+        Tool: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/>',
+        Guide: '<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.4 1.4L7 5M3.5 12l1.4 1.4L7 11M3.5 18l1.4 1.4L7 17"/>',
+        Article: '<path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 8h3"/>',
+        Video: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10.5 9.5l4.5 2.5-4.5 2.5z"/>',
+        'Check-in': '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/>',
+      };
+      const mcard = ({ type, color, character, title, meta, onclick, href, play }) => {
+        const top = el('div', { class: 'mtop', style: `background:${color};color:${onColor(color)}` }, el('span', { class: 'tbadge', html: `<svg viewBox="0 0 24 24">${TYPE_ICON[type]}</svg>${type}${href ? ' ↗' : ''}` }), play ? el('span', { class: 'play', 'aria-hidden': 'true' }) : ill(character));
+        const body = el('div', { class: 'mbody' }, el('b', { text: title }), el('span', { text: meta }));
+        return href ? el('a', { class: 'mcard', href, target: '_blank', rel: 'noopener noreferrer', 'aria-label': title + ' (opens YouTube)' }, top, body) : el('button', { class: 'mcard', onclick }, top, body);
+      };
       const row = (title, more, cards) => el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: title }), more ? el('button', { class: 'link', text: 'See all', onclick: more }) : null), el('div', { class: 'hscroll' }, ...cards));
       const toLearn = (t) => () => { S.learnTab = t; tab('learn'); };
-      const gcard = (g) => { const m = guideMeta(g); return el('button', { class: 'gcard', onclick: () => go('guide', g.id) }, el('b', { text: g.title }), el('div', { class: 'gdots', 'aria-hidden': 'true' }, ...g.steps.map(() => el('i', { style: `background:${m.color}` }))), el('span', { class: 'gmore', text: `${g.steps.length} steps \u00b7 ${g.minutes} min` })); };
-      const rcard = (a) => el('button', { class: 'rcard', onclick: () => go('article', a.id) }, el('span', { class: 'topic', text: a.topic }), el('b', { text: a.title }), el('span', { class: 'read', text: `${a.minutes} min read` }));
 
-      if (recs.length) box.append(row('Top picks for you', () => go('category', '__best'), recs.slice(0, 8).map((r) => { const c = CAT[r.category].color; return el('button', { class: 'poster', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', r.tool_id) }, el('b', { text: r.name }), ill(r.category)); })));
+      if (recs.length) box.append(row('Top picks for you', () => go('category', '__best'), recs.slice(0, 8).map((r) => mcard({ type: 'Tool', color: CAT[r.category].color, character: r.category, title: r.name, meta: CAT[r.category].label, onclick: () => go('tool', r.tool_id) }))));
       else box.append(el('div', { class: 'sec' }, el('h2', { text: 'Top picks for you' }), el('div', { class: 'empty', style: 'text-align:left' }, S.review ? 'Nothing can be shown until the catalogue is clinician-reviewed.' : 'Nothing has passed the safety checks yet. Your picks will appear here.', el('br'), el('button', { class: 'link', text: 'Start a check-in', onclick: toLearn('checkins') }))));
       const openChecks = CHECKINS.filter((c) => { const inf = checkinInfo(c, all); return inf.done < inf.total; });
-      if (openChecks.length) box.append(row('Continue your check-ins', toLearn('checkins'), openChecks.map((c) => checkinCard(c, all, false))));
+      if (openChecks.length) box.append(row('Continue your check-ins', toLearn('checkins'), openChecks.map((c) => mcard({ type: 'Check-in', color: c.color, character: c.ill, title: c.title, meta: checkinInfo(c, all).label, onclick: () => go('checkin', c.id) }))));
       const rel = (g) => (g.tool && ids.has(g.tool) ? 0 : 1);
-      box.append(row('Step by step', toLearn('guides'), GUIDES.filter((x) => guideState(x) !== 'blocked').sort((a, b) => rel(a) - rel(b)).map(gcard)));
+      box.append(row('Step by step', toLearn('guides'), GUIDES.filter((x) => guideState(x) !== 'blocked').sort((a, b) => rel(a) - rel(b)).map((g) => mcard({ type: 'Guide', color: guideMeta(g).color, character: guideMeta(g).ill, title: g.title, meta: `${g.steps.length} steps · ${g.minutes} min`, onclick: () => go('guide', g.id) }))));
       const vids = VIDEOS.filter((x) => videoState(x, ids) !== 'blocked');
-      if (vids.length) box.append(row('Watch and learn', toLearn('videos'), vids.map((x) => videoNode(x, videoState(x, ids), false))));
-      box.append(row('Read', toLearn('articles'), ARTICLES.map(rcard)));
+      if (vids.length) box.append(row('Watch and learn', toLearn('videos'), vids.map((x) => mcard({ type: 'Video', color: CAT[x.category].color, title: x.title, meta: x.label, href: x.url, play: true }))));
+      box.append(row('Read', toLearn('articles'), ARTICLES.map((a) => mcard({ type: 'Article', color: a.color, character: a.ill, title: a.title, meta: `${a.topic} · ${a.minutes} min read`, onclick: () => go('article', a.id) }))));
     };
     v.append(searchBox(S.text, (t) => { S.text = t; draw(); }), box); draw();
   },
