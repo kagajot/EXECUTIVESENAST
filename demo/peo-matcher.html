@@ -785,7 +785,6 @@ const PAGES = {
       v.append(el('div', { class: 'head', style: 'margin-top:18px' }, el('h1', { class: 'big-h', text: 'Tools that are safe for you.' }), el('p', { text: 'Answer a few questions. You get assistive tools and everyday workarounds that fit your body, your home and your tech.' })));
       for (const [ic, t, d] of [['<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2.2 2.2L15.5 10"/>', 'Safety comes first', 'Anything we cannot confirm is safe for you is left out, and you see why.'], ['<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>', 'About 3 minutes', 'Only questions that matter for what you pick.'], ['<rect x="6" y="11" width="12" height="9" rx="2"/><path d="M9 11V8a3 3 0 0 1 6 0v3"/>', 'Stays on this device', 'Your answers are saved in this browser only.']])
         v.append(el('div', { class: 'pt' }, el('i', { html: `<svg viewBox="0 0 24 24">${ic}</svg>` }), el('div', {}, el('b', { text: t }), el('div', { class: 'muted', text: d }))));
-        v.append(el('div', { class: 'pt' }, el('i', { text: i }), el('div', {}, el('b', { text: t }), el('div', { class: 'muted', text: d }))));
       v.append(el('div', { class: 'muted', style: 'font-size:13px', text: 'Decision support, not medical advice. It does not replace an occupational therapist. Tool entries in this version have not been clinician-reviewed.' }));
       next.textContent = 'Get started';
     } else if (step === 'goals') {
