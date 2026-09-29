@@ -81,7 +81,7 @@
     { "id": "mobility_transfers", "label": "Moving around",          "color": "#4A5068", "sort": 4 },
     { "id": "medication_health",  "label": "Medication",             "color": "#6CC7A2", "sort": 5 },
     { "id": "memory_planning",    "label": "Memory & planning",      "color": "#4FB8B0", "sort": 6 },
-    { "id": "communication_tech", "label": "Phone & communication",  "color": "#F6C56B", "sort": 7 }
+    { "id": "communication_tech", "label": "Phone & communication",  "color": "#F4A6A0", "sort": 7 }
   ],
   "chips": {
     "one_handed":        "One-handed",
