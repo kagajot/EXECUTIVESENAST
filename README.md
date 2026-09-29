@@ -40,14 +40,14 @@ The reference UI is a search bar, a row of quick-filter chips, and colour-coded 
 `node demo/build.mjs` builds `demo/peo-matcher.html`: a single-file mobile-style app that inlines the real engine.
 First run is a setup flow that only asks what the chosen goals make relevant (about 12 of 20 ability questions for
 a two-goal example). Answers are saved in the browser's `localStorage` on that device only; nothing is sent anywhere.
-Pages: Home, Explore (a collage of sections: search and bubble filters, a best-for-you carousel, all category cards
-with character illustrations, videos, check-ins), a category page, Learn (videos and check-ins), Safety, Profile.
+Pages: Home (best-match hero, round area shortcuts, toolkit, profile progress, videos), Explore (a collage of sections: search and bubble filters, a best-for-you carousel, all category cards
+with character illustrations, videos, check-ins), a category page, Learn (videos and check-ins), Profile. There is no separate Safety page; the gates still run on every result, and the therapist summary lists every excluded tool with its plain-language reason.
 Videos are real third-party YouTube links found by search; titles are as listed and the content has not been
 reviewed. A video about a tool that fails the safety gates for the current person is never promoted (only listed on
 Learn, flagged). Check-ins are focused sets of the ability, risk and home questions the engine needs.
 Features: safe-options browse (category cards, chips, search), tool detail with why-it-fits, a saved toolkit that is
-re-checked against the current answers, the Safety tab listing every excluded tool with its reason and one-tap
-questions that could unlock more, and a copyable summary for a therapist. It is free: no accounts, no paywall.
+re-checked against the current answers, Home's one-tap questions that could unlock more tools, and a copyable summary for a therapist that lists
+every excluded tool with its reason. It is free: no accounts, no paywall.
 The catalogue is still unreviewed drafts, and the UI says so.
 
 Run: `npm test`, `node src/cli.mjs post_stroke_left_hemiparesis --allow-draft`
