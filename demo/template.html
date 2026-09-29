@@ -278,6 +278,13 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .billboard .ill{position:relative;order:-1;align-self:flex-end;right:auto;top:auto;width:150px;height:150px;margin:-4px -8px 4px 0}
 .billboard>.label,.billboard>h1,.billboard>p{max-width:none}
 .billboard h1{font-size:26px;-webkit-line-clamp:4}
+.gcard{width:248px;background:var(--surface);gap:10px;align-items:flex-start;padding:14px}
+.gcard>b{font-family:var(--f-display);font-size:17px;line-height:1.2}
+.gsteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px;width:100%}
+.gsteps li{display:flex;gap:9px;align-items:center;font-size:13.5px;color:var(--ink);min-width:0}
+.gsteps li span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gn{flex:none;width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700}
+.gmore{font-size:12px;color:var(--muted);margin-top:auto}
 </style>
 
 <div class="stage">
@@ -786,7 +793,7 @@ const PAGES = {
 
       const row = (title, more, cards) => el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: title }), more ? el('button', { class: 'link', text: 'See all', onclick: more }) : null), el('div', { class: 'hscroll' }, ...cards));
       const toLearn = (t) => () => { S.learnTab = t; tab('learn'); };
-      const gcard = (g) => { const m = guideMeta(g); return el('button', { class: 'gcard', onclick: () => go('guide', g.id) }, el('div', { class: 'gtop', style: `background:${m.color};color:${onColor(m.color)}`, text: `${g.steps.length} steps · ${g.minutes} min` }), el('div', { class: 'gbody' }, el('b', { text: g.title }), el('span', { text: m.label }))); };
+      const gcard = (g) => { const m = guideMeta(g); return el('button', { class: 'gcard', onclick: () => go('guide', g.id) }, el('b', { text: g.title }), el('ol', { class: 'gsteps' }, ...g.steps.slice(0, 3).map((x, i) => el('li', {}, el('span', { class: 'gn', style: `background:${m.color};color:${onColor(m.color)}`, text: String(i + 1) }), el('span', { text: x.t })))), el('span', { class: 'gmore', text: `+${g.steps.length - 3} more steps \u00b7 ${g.minutes} min` })); };
       const rcard = (a) => el('button', { class: 'rcard', onclick: () => go('article', a.id) }, el('span', { class: 'topic', text: a.topic }), el('b', { text: a.title }), el('span', { class: 'read', text: `${a.minutes} min read` }));
 
       if (recs.length) box.append(row('Top picks for you', () => go('category', '__best'), recs.slice(0, 8).map((r) => { const c = CAT[r.category].color; return el('button', { class: 'poster', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', r.tool_id) }, el('b', { text: r.name }), ill(r.category)); })));
