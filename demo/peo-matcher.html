@@ -1,148 +1,189 @@
 <title>PEO Assistive Matcher</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a phone-sized app (bottom tabs, pushed pages) centred on white. On a real phone it fills the screen. */
+/* Layout: top nav + one column of large sections (hero, category cards, safety band, live numbers, closing block). Phones get a bottom tab bar. */
 :root{
-  --bg:#FFFFFF; --surface:#F5F6FA; --ink:#1B2235; --muted:#626B85; --line:#E9EBF2; --accent:#3D5AF1; --accent-ink:#FFFFFF; --accent-soft:#E9EDFF;
-  --ok:#1E8E5A; --ok-bg:#DDF3E8; --warn:#9A6200; --warn-bg:#FCEBC7; --bad:#B3261E; --bad-bg:#FBDCD9; --shadow:0 18px 50px rgba(27,34,53,.10);
+  --bg:#FFFFFF; --soft:#F5F6FA; --ink:#141A2B; --muted:#5B647E; --line:#E7E9F1; --accent:#3D5AF1; --accent-ink:#FFFFFF; --accent-soft:#E9EDFF;
+  --ok:#1E8E5A; --ok-bg:#DDF3E8; --warn:#9A6200; --warn-bg:#FCEBC7; --bad:#B3261E; --bad-bg:#FBDCD9;
   --f-display:'Bricolage Grotesque','DM Sans',system-ui,sans-serif; --f-body:'DM Sans',system-ui,sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+  color-scheme:light;
 }
-:root{color-scheme:light}
 *{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55}
 button{font:inherit;color:inherit}
-h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
-h1{font-size:28px;line-height:1.12} h2{font-size:19px} h3{font-size:16px}
-.mono{font-family:var(--f-mono);font-size:11px}
-.label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.02em;line-height:1.06}
+h1{font-size:clamp(36px,6.6vw,68px);font-weight:800} h2{font-size:clamp(26px,4vw,40px);font-weight:700} h3{font-size:19px;font-weight:700;line-height:1.2}
+p{margin:0}
+.wrap{max-width:1120px;margin-inline:auto;padding-inline:20px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-size:12px}
 .muted{color:var(--muted)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 
-.stage{height:100%;display:grid;place-items:center;padding:20px}
-.app{position:relative;width:100%;max-width:410px;height:min(100%,860px);background:var(--bg);border:1px solid var(--line);border-radius:38px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
-@media(max-width:520px){.stage{padding:0;display:block}.app{max-width:none;height:100%;border:0;border-radius:0;box-shadow:none}}
+.topbar{position:sticky;top:0;z-index:6;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+.logo{font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:-.03em;display:flex;align-items:center;gap:8px;border:0;background:none;cursor:pointer;padding:0}
+.logo i{width:22px;height:22px;border-radius:7px;background:var(--accent);display:block;position:relative}
+.logo i::after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.7);right:-3px;top:-3px}
+.links{display:flex;gap:4px}
+.links button{border:0;background:none;cursor:pointer;padding:8px 16px;border-radius:999px;font-weight:500;color:var(--muted);position:relative}
+.links button:hover{background:var(--soft)} .links button[aria-current=page]{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.badge{display:inline-grid;place-items:center;min-width:20px;height:20px;border-radius:10px;background:var(--bad);color:#fff;font-size:11px;font-weight:700;padding:0 6px;margin-left:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:var(--accent-ink);font-weight:700;border-radius:999px;padding:14px 26px;font-size:17px;border:0;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:0 8px 24px rgba(61,90,241,.28)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(61,90,241,.34)}
+.btn.sm{padding:10px 18px;font-size:15px;box-shadow:none}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:none;border:1.5px solid var(--line)}
+.btn.big{padding:18px 34px;font-size:19px}
+.btn.wide{width:100%;padding:16px 20px;font-size:17px}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
 
-.bar[hidden]{display:none}
-.bar{display:flex;align-items:center;gap:8px;padding:14px 12px 6px;flex:none}
-.bar h2{flex:1;text-align:center;font-size:16px;padding-right:40px}
-.iconbtn{width:40px;height:40px;border:0;border-radius:50%;background:transparent;display:grid;place-items:center;cursor:pointer}
-.iconbtn:hover{background:var(--surface)}
-main{flex:1;overflow-y:auto;overflow-x:hidden;padding:22px 20px 24px;display:flex;flex-direction:column;gap:18px;min-height:0;scrollbar-width:thin}
-.bar:not([hidden])+main{padding-top:10px}
-.head{display:flex;flex-direction:column;gap:6px}
-.head p{margin:0;color:var(--muted)}
+main.page{padding-block:32px 88px;display:flex;flex-direction:column;gap:22px}
+main.page.home{gap:72px;padding-top:36px}
+main.page.narrow{max-width:760px}
+.backlink{align-self:flex-start;border:0;background:none;cursor:pointer;color:var(--muted);font-weight:700;padding:6px 0;display:flex;gap:6px;align-items:center}
+.backlink:hover{color:var(--ink)}
+.pageh{font-size:clamp(30px,5vw,46px)}
+.head{display:flex;flex-direction:column;gap:10px}
+.head p{color:var(--muted);max-width:44em}
+.hl{background:linear-gradient(transparent 62%,var(--accent-soft) 62%)}
+.sec{display:flex;flex-direction:column;gap:12px}
+.stack{display:flex;flex-direction:column;gap:18px}
 
-.tabs{flex:none;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);background:var(--bg);padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px))}
-.tab{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px;color:var(--muted);font-size:11px;cursor:pointer;position:relative;border-radius:12px}
-.tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.tab[aria-current=page]{color:var(--accent)}
-.badge{position:absolute;top:0;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-
-.search{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:999px;padding:0 16px;background:var(--bg)}
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:40px;align-items:center}
+.hero .copy{display:flex;flex-direction:column;gap:24px;align-items:flex-start}
+.sub{font-size:clamp(18px,2.2vw,21px);color:var(--muted);max-width:32em}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px}
+.search{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:999px;padding:0 18px;background:var(--bg);width:100%;max-width:520px}
 .search svg{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;flex:none}
-.search input{flex:1;min-width:0;border:0;background:none;color:var(--ink);font:inherit;padding:12px 0;outline:0}
+.search input{flex:1;min-width:0;border:0;background:none;color:var(--ink);font:inherit;padding:13px 0;outline:0}
 .search:focus-within{border-color:var(--accent)}
-.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-inline:-20px;padding-inline:20px}
-.chips::-webkit-scrollbar{display:none}
-.chip{flex:none;border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 16px;cursor:pointer;font-size:14px}
-.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 16px;cursor:pointer;font-size:14px}
+.chip:hover{border-color:var(--ink)} .chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 
-/* category cards: kept from v1 */
-.cards{display:flex;flex-direction:column;gap:12px}
-.card{position:relative;overflow:hidden;border:0;border-radius:18px;min-height:84px;padding:0 18px;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:center;font:inherit;width:100%}
-.card::before,.card::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.28)}
-.card::before{width:98px;height:98px;right:-18px;top:-24px} .card::after{width:46px;height:46px;right:54px;top:42px;background:rgba(255,255,255,.2)}
-.card b{font-family:var(--f-display);font-size:18px;position:relative} .card span{position:relative;font-size:13px;opacity:.85}
-@media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:active{transform:scale(.985)}.page{animation:in .18s ease-out}@keyframes in{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}}
+/* category cards (same design as before) */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.cat{position:relative;overflow:hidden;border:0;border-radius:20px;min-height:118px;padding:18px;display:flex;flex-direction:column;justify-content:flex-end;text-align:left;cursor:pointer;width:100%}
+.cat::before,.cat::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.28)}
+.cat::before{width:100px;height:100px;right:-20px;top:-26px}.cat::after{width:44px;height:44px;right:52px;top:44px;background:rgba(255,255,255,.2)}
+.cat b{position:relative;font-family:var(--f-display);font-weight:700;font-size:19px;line-height:1.15}.cat span{position:relative;font-size:13px;opacity:.85}
+@media (prefers-reduced-motion:no-preference){.cat,.tcard{transition:transform .14s,box-shadow .14s}.cat:hover,.tcard:hover{transform:translateY(-3px)}.page>*{animation:in .22s ease-out}@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}}
 
-.notice{display:flex;gap:12px;align-items:center;justify-content:space-between;border-radius:16px;padding:12px 14px;background:var(--warn-bg);color:var(--warn);font-size:13px;cursor:pointer;border:0;text-align:left;width:100%}
-.notice.safe{background:var(--ok-bg);color:var(--ok)}
-.linkrow{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.link{border:0;background:none;color:var(--accent);font-weight:700;cursor:pointer;padding:4px 0}
+/* live card, safety band */
+.band{background:var(--soft);border-radius:36px;padding:56px 40px}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:center}
+.rule{display:flex;flex-direction:column;gap:4px;padding-top:16px;border-top:1.5px solid var(--line)}
+.rule b{font-family:var(--f-display);font-size:19px}.rule span{color:var(--muted)}
+.blocked{background:var(--bg);border-radius:24px;padding:22px;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(20,26,43,.08);min-width:0}
+.brow{display:flex;flex-direction:column;gap:6px;padding:14px 0;border-top:1px solid var(--line);align-items:flex-start;text-align:left;background:none;border-left:0;border-right:0;border-bottom:0;width:100%}
+.brow:first-of-type{border-top:0}
+button.brow{cursor:pointer} button.brow:hover b{color:var(--accent)}
+.brow b{font-family:var(--f-display);font-size:17px}
+.brow .why{color:var(--muted);font-size:15px}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11px;border-radius:7px;padding:2px 8px;background:var(--soft);color:var(--muted)}
+.tag.hard{background:var(--bad-bg);color:var(--bad)} .tag.unconfirmed{background:var(--warn-bg);color:var(--warn)} .tag.ok{background:var(--ok-bg);color:var(--ok)} .tag.preference{background:var(--soft)}
+.tag.plain{font-family:var(--f-body);font-size:12px;font-weight:500}
+.tag.sev-high{background:var(--bad-bg);color:var(--bad)} .tag.sev-moderate{background:var(--warn-bg);color:var(--warn)} .tag.best{background:var(--accent-soft);color:var(--accent);font-weight:700;font-family:var(--f-body)}
+.ok-row{display:flex;gap:10px;align-items:center;padding-top:14px;border-top:1px solid var(--line);font-weight:700;flex-wrap:wrap}
+.linkbtn{border:0;background:none;color:var(--accent);font-weight:700;cursor:pointer;padding:6px 0;align-self:flex-start}
 
-.list{display:flex;flex-direction:column;gap:10px}
-.item{display:flex;gap:14px;align-items:center;border:0;background:var(--surface);border-radius:18px;padding:12px;text-align:left;cursor:pointer;width:100%}
-.tile{position:relative;flex:none;width:54px;height:54px;border-radius:16px;overflow:hidden}
-.tile::before{content:"";position:absolute;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.35);right:-8px;top:-8px}
-.tile::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.25);left:10px;bottom:9px}
-.item .txt{min-width:0;display:flex;flex-direction:column;gap:2px;flex:1}
-.item .txt b{font-family:var(--f-display);font-size:16px}
-.item .txt span{color:var(--muted);font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.tag{display:inline-block;font-size:11px;border-radius:7px;padding:2px 8px;background:var(--surface);color:var(--muted);font-weight:500}
-.item .tag{background:var(--bg)}
-.tag.sev-high{background:var(--bad-bg);color:var(--bad)} .tag.sev-moderate{background:var(--warn-bg);color:var(--warn)} .tag.best{background:var(--accent-soft);color:var(--accent);font-weight:700}
-.tag.hard{background:var(--bad-bg);color:var(--bad);font-family:var(--f-mono)} .tag.unconfirmed{background:var(--warn-bg);color:var(--warn);font-family:var(--f-mono)} .tag.preference{font-family:var(--f-mono)}
+/* live numbers */
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.fact b{display:block;font-family:var(--f-display);font-size:clamp(44px,6.4vw,68px);line-height:1;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.fact span{color:var(--muted)}
+.asks{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ask{display:flex;flex-direction:column;gap:14px;justify-content:space-between;background:var(--accent-soft);border-radius:22px;padding:18px}
+.ask b{display:block;font-family:var(--f-display);font-size:18px;line-height:1.2}.ask span{font-size:14px;color:var(--muted)}
+.ask .btn{align-self:flex-start;padding:9px 20px;font-size:15px;box-shadow:none}
+.final{background:var(--accent);color:var(--accent-ink);border-radius:36px;padding:60px 32px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px;position:relative;overflow:hidden}
+.final::before,.final::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.12)}
+.final::before{width:320px;height:320px;right:-80px;top:-120px}.final::after{width:150px;height:150px;left:-40px;bottom:-60px}
+.final>*{position:relative}.final .btn{background:#fff;color:var(--accent);box-shadow:0 12px 30px rgba(0,0,0,.18)}
+.foot-note{color:var(--muted);font-size:14px;max-width:46em}
+.notice{display:flex;gap:12px;align-items:center;justify-content:space-between;border-radius:16px;padding:12px 16px;background:var(--warn-bg);color:var(--warn);font-size:14px;cursor:pointer;border:0;text-align:left;width:100%}
+
+/* tools */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.tcard{display:flex;flex-direction:column;border:0;background:var(--soft);border-radius:22px;overflow:hidden;text-align:left;cursor:pointer;padding:0;width:100%}
+.tcard:hover{box-shadow:0 14px 32px rgba(20,26,43,.10)}
+.thead{position:relative;height:84px;overflow:hidden;display:flex;align-items:flex-end;padding:12px 18px}
+.thead::before,.thead::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.28)}
+.thead::before{width:90px;height:90px;right:-16px;top:-30px}.thead::after{width:40px;height:40px;right:60px;top:38px;background:rgba(255,255,255,.2)}
+.thead span{position:relative;font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.tbody{display:flex;flex-direction:column;gap:8px;padding:16px 18px 18px}
+.tbody b{font-family:var(--f-display);font-size:19px;line-height:1.15}.tbody p{color:var(--muted);font-size:15px}
 .row2{display:flex;flex-wrap:wrap;gap:6px}
-
-.hero{position:relative;overflow:hidden;border-radius:22px;padding:22px 20px;min-height:150px;display:flex;flex-direction:column;justify-content:flex-end;gap:4px}
-.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.28)}
-.hero::before{width:150px;height:150px;right:-30px;top:-40px} .hero::after{width:70px;height:70px;right:90px;top:70px;background:rgba(255,255,255,.2)}
-.hero *{position:relative} .hero h1{font-size:26px}
-.sec{display:flex;flex-direction:column;gap:10px}
-.check{display:flex;gap:10px;align-items:flex-start;font-size:14px}
-.check i{flex:none;width:20px;height:20px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;margin-top:1px}
+.tool-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}
+.hero-t{position:relative;overflow:hidden;border-radius:28px;padding:30px 26px;min-height:190px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px}
+.hero-t::before,.hero-t::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.28)}
+.hero-t::before{width:180px;height:180px;right:-40px;top:-50px}.hero-t::after{width:80px;height:80px;right:110px;top:90px;background:rgba(255,255,255,.2)}
+.hero-t>*{position:relative}.hero-t h1{font-size:clamp(30px,4.6vw,46px)}
+.box{background:var(--soft);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+.check i{flex:none;width:22px;height:22px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;margin-top:2px}
 .check.warn i{background:var(--warn-bg);color:var(--warn)}
-.meter{display:grid;grid-template-columns:110px 1fr 34px;gap:10px;align-items:center;font-size:13px}
-.meter .bar2{height:6px;border-radius:9px;background:var(--surface);overflow:hidden}.meter .bar2 i{display:block;height:100%;background:var(--accent);border-radius:9px}
-.meter .mono{text-align:right}
-.box{background:var(--surface);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.meter{display:grid;grid-template-columns:130px 1fr 38px;gap:10px;align-items:center;font-size:14px}
+.bar2{height:7px;border-radius:9px;background:var(--bg);overflow:hidden}.bar2 i{display:block;height:100%;background:var(--accent);border-radius:9px}
+.linkrow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.empty{background:var(--soft);border-radius:22px;padding:24px;color:var(--muted);text-align:center}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.bcard{background:var(--soft);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:8px}
+.bcard b{font-family:var(--f-display);font-size:18px}
+.reason{display:flex;flex-direction:column;gap:3px;font-size:14px;color:var(--muted);align-items:flex-start}
 
-.empty{background:var(--surface);border-radius:18px;padding:18px;color:var(--muted);text-align:center}
-.reason{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--muted)}
-.blocked{background:var(--surface);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:8px}
-.blocked .reason{flex-direction:row;flex-wrap:wrap;gap:6px;align-items:baseline}
-.ask{display:flex;gap:10px;justify-content:space-between;align-items:center;background:var(--accent-soft);border-radius:18px;padding:12px 14px}
-.ask b{display:block;font-weight:700}.ask span{font-size:13px;color:var(--muted)}
-.btn{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;padding:9px 16px;border-radius:999px;cursor:pointer;flex:none}
-.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
-
-.rows{display:flex;flex-direction:column;background:var(--surface);border-radius:18px;overflow:hidden}
-.rowlink{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 16px;border:0;border-top:1px solid var(--line);background:none;cursor:pointer;text-align:left;width:100%}
-.rowlink:first-child{border-top:0}
-.rowlink small{color:var(--muted);display:block}
+/* profile + forms */
+.rows{display:flex;flex-direction:column;background:var(--soft);border-radius:22px;overflow:hidden}
+.rowlink{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 20px;border:0;border-top:1px solid var(--line);background:none;cursor:pointer;text-align:left;width:100%}
+.rowlink:first-child{border-top:0}.rowlink:hover{background:#EDEFF7}
+.rowlink small{color:var(--muted);display:block;font-size:14px}
 .rowlink svg{width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
-select.sel{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:0;border-radius:14px;padding:13px 14px}
-
+select.sel{width:100%;font:inherit;color:var(--ink);background:var(--soft);border:0;border-radius:16px;padding:14px 16px}
 .pills{display:flex;flex-wrap:wrap;gap:8px}
-.pill{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:8px 14px;cursor:pointer;font-size:14px}
+.pill{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:9px 16px;cursor:pointer;font-size:15px}
+.pill:hover{border-color:var(--ink)}
 .pill[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .pill.risk[aria-pressed=true]{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
 .pill.env[aria-pressed=true]{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
 .pill.env.forb[aria-pressed=true]{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
 .cap{display:flex;flex-direction:column;gap:6px}
-.seg{display:grid;grid-template-columns:1.5fr repeat(5,1fr);gap:4px;background:var(--surface);border-radius:12px;padding:3px}
-.seg button{border:0;background:none;border-radius:9px;padding:7px 0;cursor:pointer;font-weight:700;color:var(--muted)}
-.seg button[aria-pressed=true]{background:var(--bg);color:var(--accent);box-shadow:0 1px 3px rgba(27,34,53,.15)}
+.seg{display:grid;grid-template-columns:1.6fr repeat(5,1fr);gap:4px;background:var(--soft);border-radius:14px;padding:4px}
+.seg button{border:0;background:none;border-radius:10px;padding:9px 0;cursor:pointer;font-weight:700;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--bg);color:var(--accent);box-shadow:0 1px 3px rgba(20,26,43,.15)}
 .seg button.na[aria-pressed=true]{color:var(--warn)}
-.switchrow{display:flex;justify-content:space-between;align-items:center;gap:14px;background:var(--surface);border-radius:18px;padding:14px 16px}
-.toggle{flex:none;width:50px;height:30px;border-radius:15px;border:0;background:var(--line);position:relative;cursor:pointer}
-.toggle::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .15s}
-.toggle[aria-pressed=true]{background:var(--accent)} .toggle[aria-pressed=true]::after{transform:translateX(20px)}
-.tabs[hidden]{display:none}
+.legend{display:grid;grid-template-columns:1.6fr repeat(5,1fr);gap:4px;font-size:11px;color:var(--muted);text-align:center;line-height:1.15;padding-inline:4px}
+.switchrow{display:flex;justify-content:space-between;align-items:center;gap:16px;background:var(--soft);border-radius:22px;padding:18px 20px}
+.toggle{flex:none;width:52px;height:32px;border-radius:16px;border:0;background:var(--line);position:relative;cursor:pointer}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;transition:transform .15s}
+.toggle[aria-pressed=true]{background:var(--accent)}.toggle[aria-pressed=true]::after{transform:translateX(20px)}
+textarea.sum{width:100%;min-height:380px;font:13px/1.55 var(--f-mono);color:var(--ink);background:var(--soft);border:0;border-radius:20px;padding:18px;resize:vertical}
 .ob-head{display:flex;align-items:center;gap:12px}
-.progress{flex:1;height:6px;border-radius:9px;background:var(--surface);overflow:hidden}.progress i{display:block;height:100%;background:var(--accent);border-radius:9px;transition:width .2s}
-.foot{position:sticky;bottom:-24px;margin:auto -20px -24px;padding:14px 20px 22px;background:linear-gradient(rgba(255,255,255,0),#fff 28%);display:flex;flex-direction:column;gap:8px;margin-top:auto}
-.btn.wide{width:100%;padding:15px 20px;font-size:16px}
-.btn:disabled{opacity:.35;cursor:not-allowed}
-.big-h{font-size:30px}
-.pt{display:flex;gap:12px;align-items:flex-start}
-.pt i{flex:none;width:32px;height:32px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-style:normal;font-weight:700}
-.legend{display:grid;grid-template-columns:1.5fr repeat(5,1fr);gap:4px;font-size:11px;color:var(--muted);text-align:center;line-height:1.15}
-.savebtn{align-self:flex-start}
-textarea.sum{width:100%;min-height:340px;font:12px/1.5 var(--f-mono);color:var(--ink);background:var(--surface);border:0;border-radius:16px;padding:14px;resize:vertical}
+.progress{flex:1;height:8px;border-radius:9px;background:var(--soft);overflow:hidden}.progress i{display:block;height:100%;background:var(--accent);border-radius:9px;transition:width .2s}
+.iconbtn{width:40px;height:40px;border:0;border-radius:50%;background:transparent;display:grid;place-items:center;cursor:pointer}.iconbtn:hover{background:var(--soft)}
+.foot{position:sticky;bottom:0;margin-inline:-20px;padding:14px 20px calc(18px + env(safe-area-inset-bottom,0px));background:linear-gradient(rgba(255,255,255,0),#fff 30%);display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.pt{display:flex;gap:14px;align-items:flex-start}
+.pt i{flex:none;width:34px;height:34px;border-radius:12px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-style:normal;font-weight:800;font-family:var(--f-display)}
+
+.tabs{display:none}
+@media(max-width:900px){
+  .hero,.split,.tool-grid{grid-template-columns:minmax(0,1fr)} .cards{grid-template-columns:repeat(2,1fr)} .facts,.asks{grid-template-columns:minmax(0,1fr)}
+  .band{padding:34px 22px;border-radius:28px} main.page.home{gap:52px}
+}
+@media(max-width:760px){
+  .links{display:none} .topbar .sumbtn{display:none}
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:7;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px))}
+  .tabs[hidden]{display:none}
+  .tab{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px;color:var(--muted);font-size:11px;cursor:pointer;position:relative}
+  .tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tab[aria-current=page]{color:var(--accent)} .tab .badge{position:absolute;top:0;left:calc(50% + 6px);margin:0;font-size:10px;min-width:17px;height:17px}
+  main.page{padding-bottom:110px}.foot{bottom:0}
+  .meter{grid-template-columns:104px 1fr 34px}
+}
 </style>
 
-<div class="stage">
-  <div class="app" id="app">
-    <div class="bar" id="bar" hidden>
-      <button class="iconbtn" id="back" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
-      <h2 id="barTitle"></h2>
-    </div>
-    <main id="view"></main>
-    <nav class="tabs" id="tabs" aria-label="Main"></nav>
-  </div>
-</div>
+<header class="topbar" id="topbar"><div class="wrap nav" id="nav"></div></header>
+<main class="wrap page" id="view"></main>
+<nav class="tabs" id="tabs" aria-label="Main"></nav>
 
 <script>
 // Vocabulary validation.
@@ -496,7 +537,7 @@ const el = (tag, attrs = {}, ...kids) => { const n = document.createElement(tag)
 const CAT = Object.fromEntries(T.categories.map((c) => [c.id, c]));
 const FEATURED_COLOR = '#F4A6A0';
 const dark = (hex) => { const n = parseInt(hex.slice(1), 16); return 0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255) < 140; };
-const onColor = (hex) => (dark(hex) ? '#FFFFFF' : '#1B2235');
+const onColor = (hex) => (dark(hex) ? '#FFFFFF' : '#141A2B');
 const CHEV = '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
 const CHEV_S = CHEV.replace('<svg', '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"');
 const ICON = {
@@ -527,43 +568,52 @@ const toolOf = (id) => TOOLS.find((t) => t.id === id);
 
 // ---------- router
 const TABS = [['home', 'Home'], ['explore', 'Explore'], ['safety', 'Safety'], ['profile', 'Profile']];
-function tab(name) { S.stack = [{ page: name }]; render(); }
-function go(page, arg) { S.stack.push({ page, arg }); render(); }
-function back() { if (S.stack.length > 1) S.stack.pop(); render(); }
+const WIDE = new Set(['home', 'explore', 'tool', 'safety']);
+function tab(name) { S.stack = [{ page: name }]; render(); window.scrollTo(0, 0); }
+function go(page, arg) { S.stack.push({ page, arg }); render(); window.scrollTo(0, 0); }
+function back() { if (S.stack.length > 1) S.stack.pop(); render(); window.scrollTo(0, 0); }
 function exploreWith(f) { S.cat = f.cat ?? null; S.chips = f.chips ?? []; S.text = f.text ?? ''; S.task = f.task ?? null; tab('explore'); }
-const TITLES = { tool: '', p_goals: 'What I want to do', p_caps: 'Abilities', p_risk: 'Risk screening', p_tech: 'Tech and budget', p_env: 'My home', p_settings: 'Settings', summary: 'Summary for my therapist' };
+function openSummary() { S.stack = [{ page: 'profile' }, { page: 'summary' }]; render(); window.scrollTo(0, 0); }
+const TITLES = { p_goals: 'What I want to do', p_caps: 'Abilities', p_risk: 'Risk screening', p_tech: 'Tech and budget', p_env: 'My home', p_settings: 'Settings', summary: 'Summary for my therapist' };
 function render() {
-  const cur = S.stack[S.stack.length - 1], onb = cur.page === 'onboard', sub = S.stack.length > 1;
-  $('bar').hidden = !sub; $('barTitle').textContent = sub ? TITLES[cur.page] ?? '' : '';
-  $('tabs').hidden = onb;
-  const view = $('view'); view.replaceChildren(); view.className = ''; void view.offsetWidth; view.className = 'page';
+  const cur = S.stack[S.stack.length - 1], onb = cur.page === 'onboard', sub = S.stack.length > 1, base = S.stack[0].page;
+  const view = $('view'); view.replaceChildren();
+  view.className = 'wrap page ' + (cur.page === 'home' ? 'home ' : '') + (WIDE.has(cur.page) ? '' : 'narrow');
+  if (sub) {
+    view.append(el('button', { class: 'backlink', onclick: back, html: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>' }, 'Back'));
+    if (TITLES[cur.page]) view.append(el('h1', { class: 'pageh', text: TITLES[cur.page] }));
+  }
   PAGES[cur.page](view, cur.arg);
-  view.scrollTop = 0;
-  const base = S.stack[0].page, n = onb ? 0 : badgeCount();
-  $('tabs').replaceChildren(...TABS.map(([id, label]) => el('button', { class: 'tab', 'aria-current': base === id ? 'page' : null, onclick: () => tab(id) },
-    el('span', { html: `<svg viewBox="0 0 24 24">${ICON[id]}</svg>` }), label, id === 'safety' && n ? el('span', { class: 'badge', text: String(n) }) : null)));
+  const n = onb ? 0 : badgeCount();
+  const badge = (id) => (id === 'safety' && n ? el('span', { class: 'badge', text: String(n) }) : null);
+  $('nav').replaceChildren(
+    el('button', { class: 'logo', onclick: () => (S.onboarded ? tab('home') : null), 'aria-label': 'Ablewise home' }, el('i'), 'Ablewise'),
+    onb ? null : el('div', { class: 'links' }, ...TABS.map(([id, label]) => el('button', { 'data-tab': id, 'aria-current': base === id ? 'page' : null, onclick: () => tab(id) }, label, badge(id)))),
+    onb ? null : el('button', { class: 'btn sm ghost sumbtn', text: 'Summary for therapist', onclick: openSummary }));
+  $('tabs').hidden = onb;
+  $('tabs').replaceChildren(...TABS.map(([id, label]) => el('button', { class: 'tab', 'data-tab': id, 'aria-current': base === id ? 'page' : null, onclick: () => tab(id) }, el('span', { html: `<svg viewBox="0 0 24 24">${ICON[id]}</svg>` }), label, badge(id))));
   persist();
 }
 function badgeCount() { try { return run({}).excluded.length; } catch { return 0; } }
-$('back').addEventListener('click', back);
 function refreshChrome() {
   persist();
-  const t = [...document.querySelectorAll('.tab')][2]; if (!t) return;
-  t.querySelector('.badge')?.remove(); const n = badgeCount(); if (n) t.append(el('span', { class: 'badge', text: String(n) }));
+  const n = badgeCount();
+  document.querySelectorAll('[data-tab=safety]').forEach((t) => { t.querySelector('.badge')?.remove(); if (n) t.append(el('span', { class: 'badge', text: String(n) })); });
 }
 
 // ---------- shared pieces
-function catCard(label, sub, color, onclick) { return el('button', { class: 'card', style: `background:${color};color:${onColor(color)}`, onclick }, el('b', { text: label }), el('span', { text: sub })); }
-function toolItem(r, best) {
+function catCard(label, sub, color, onclick) { return el('button', { class: 'cat', style: `background:${color};color:${onColor(color)}`, onclick }, el('b', { text: label }), el('span', { text: sub })); }
+function toolCard(r, best) {
   const color = CAT[r.category].color;
-  return el('button', { class: 'item', onclick: () => go('tool', r.tool_id) },
-    el('div', { class: 'tile', style: `background:${color}` }),
-    el('div', { class: 'txt' }, el('b', { text: r.name }), el('span', { text: r.summary }),
-      el('div', { class: 'row2', style: 'margin-top:4px' }, best ? el('span', { class: 'tag best', text: 'Best match' }) : null, S.saved.includes(r.tool_id) ? el('span', { class: 'tag best', text: 'Saved' }) : null,
-        el('span', { class: 'tag', text: CAT[r.category].label }), r.hazard_severity === 'moderate' || r.hazard_severity === 'high' ? el('span', { class: 'tag sev-' + r.hazard_severity, text: 'take care' }) : null)));
+  return el('button', { class: 'tcard', onclick: () => go('tool', r.tool_id) },
+    el('div', { class: 'thead', style: `background:${color};color:${onColor(color)}` }, el('span', { text: CAT[r.category].label })),
+    el('div', { class: 'tbody' }, el('b', { text: r.name }), el('p', { text: r.summary }),
+      el('div', { class: 'row2' }, best ? el('span', { class: 'tag best', text: 'Best match' }) : null, S.saved.includes(r.tool_id) ? el('span', { class: 'tag best', text: 'Saved' }) : null,
+        r.hazard_severity === 'moderate' || r.hazard_severity === 'high' ? el('span', { class: 'tag plain sev-' + r.hazard_severity, text: 'take care' }) : null)));
 }
 const searchBox = (value, oninput) => el('label', { class: 'search' }, el('span', { html: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>' }), el('input', { type: 'search', placeholder: 'Search tools and tasks', value, 'aria-label': 'Search', oninput: (e) => oninput(e.target.value) }));
 const previewNotice = () => el('button', { class: 'notice', onclick: () => go('p_settings') }, el('span', { text: S.review ? 'Clinician review is required, and no catalogue entry has been reviewed yet, so nothing can be shown.' : 'Preview catalogue: tool entries have not been reviewed by a clinician yet.' }), el('span', { html: CHEV_S }));
+const plural = (n, a, b) => `${n} ${n === 1 ? a : b}`;
 
 // ---------- controls
 function setIn(arr, v, on) { const i = arr.indexOf(v); if (on && i < 0) arr.push(v); if (!on && i >= 0) arr.splice(i, 1); refreshChrome(); }
@@ -679,20 +729,56 @@ const PAGES = {
   },
 
   home(v) {
-    const all = run({}), g = S.profile.occupation.goals;
-    v.append(el('div', { class: 'head' }, el('div', { class: 'label', text: 'Your options' }), el('h1', { text: 'What would you like to make easier?' })));
-    v.append(searchBox('', (t) => exploreWith({ text: t })));
-    v.append(g.length ? el('div', { class: 'chips' }, ...g.map((x) => el('button', { class: 'chip', onclick: () => exploreWith({ task: x }), text: T.tasks[x].label })), el('button', { class: 'chip', onclick: () => go('p_goals'), text: '+ Edit' })) : el('button', { class: 'notice safe', onclick: () => go('p_goals') }, el('span', { text: 'Choose what you want to do to get matched.' }), el('span', { html: CHEV_S })));
-    v.append(previewNotice());
-    const savedOk = all.recommendations.filter((r) => S.saved.includes(r.tool_id)), savedGone = S.saved.length - savedOk.length;
-    if (S.saved.length) v.append(el('div', { class: 'sec' }, el('h3', { text: 'My toolkit' }), el('div', { class: 'list' }, ...savedOk.map((r) => toolItem(r, false))),
-      savedGone ? el('button', { class: 'notice', onclick: () => tab('safety') }, el('span', { text: `${savedGone} saved tool${savedGone === 1 ? ' no longer passes' : 's no longer pass'} the safety checks for your current answers.` }), el('span', { html: CHEV_S })) : null));
+    const all = run({}), g = S.profile.occupation.goals, recs = all.recommendations, ex = all.excluded;
+    const hard = ex.filter((e) => e.failures.some((f) => f.kind === 'hard')), showEx = [...hard, ...ex.filter((e) => !hard.includes(e))].slice(0, 3);
+    const gaps = all.assessment_gaps.filter((x) => x.could_unlock).slice(0, 3);
+    const assessed = Object.keys(T.dimensions).filter((d) => S.profile.person.capacities[d] != null).length;
+
+    // hero: the question, and the best live answer
+    const chips = g.length ? el('div', { class: 'chips' }, ...g.map((x) => el('button', { class: 'chip', onclick: () => exploreWith({ task: x }), text: T.tasks[x].label })), el('button', { class: 'chip', onclick: () => go('p_goals'), text: '+ Edit goals' })) : el('button', { class: 'btn ghost sm', onclick: () => go('p_goals'), text: 'Choose what you want to do' });
+    const live = el('div', { class: 'blocked' }, el('div', { class: 'label', style: 'margin-bottom:6px', text: 'Best matches right now' }),
+      ...(recs.length ? recs.slice(0, 3).map((r) => el('button', { class: 'brow', onclick: () => go('tool', r.tool_id) }, el('b', { text: r.name }), el('span', { class: 'why', text: r.summary }), el('span', { class: 'tag plain', text: CAT[r.category].label }))) : [el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'Nothing has passed every safety check yet. See what you can confirm.' })]));
+    v.append(el('header', { class: 'hero' },
+      el('div', { class: 'copy' }, el('div', { class: 'label', text: S.profile.person.label }),
+        el('h1', {}, 'What would you like to make ', el('span', { class: 'hl', text: 'easier' }), '?'),
+        el('p', { class: 'sub', text: recs.length ? `${plural(recs.length, 'safe option', 'safe options')} for your goals. ${ex.length ? `${plural(ex.length, 'tool was', 'tools were')} kept out for your safety.` : ''}` : 'No tool has passed every safety check yet. Confirm a few facts and options will open up.' }),
+        searchBox('', (t) => exploreWith({ text: t })), chips,
+        el('div', { class: 'cta-row' }, el('button', { class: 'btn big', text: 'See my options', onclick: () => exploreWith({}) }), el('button', { class: 'btn ghost big', text: 'What was kept out', onclick: () => tab('safety') }))),
+      live));
+
+    // categories
     const cards = el('div', { class: 'cards' });
-    if (all.recommendations.length) cards.append(catCard('Best matches for you', `${all.recommendations.length} safe option${all.recommendations.length === 1 ? '' : 's'}`, FEATURED_COLOR, () => exploreWith({})));
-    for (const c of all.browse.categories) cards.append(catCard(c.label, `${c.count} safe option${c.count === 1 ? '' : 's'}`, c.color, () => exploreWith({ cat: c.id })));
-    if (!all.recommendations.length) cards.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'No tool passed every safety check yet. Open Safety to see why and what you can confirm.' }));
-    v.append(cards);
-    if (all.excluded.length) v.append(el('button', { class: 'notice safe', onclick: () => tab('safety') }, el('span', { text: `${all.excluded.length} tool${all.excluded.length === 1 ? ' is' : 's are'} kept out of your results for safety. See why.` }), el('span', { html: CHEV_S })));
+    if (recs.length) cards.append(catCard('Best matches', plural(recs.length, 'safe option', 'safe options'), FEATURED_COLOR, () => exploreWith({})));
+    for (const c of all.browse.categories) cards.append(catCard(c.label, plural(c.count, 'safe option', 'safe options'), c.color, () => exploreWith({ cat: c.id })));
+    v.append(el('section', { class: 'sec' }, el('div', { class: 'label', text: 'Start from what you want to do' }), recs.length ? cards : el('div', { class: 'empty', text: 'Categories appear once a tool passes every safety check.' })));
+
+    // safety band, live
+    const brow = (e) => { const f = e.failures.find((x) => x.kind === 'hard') ?? e.failures[0]; return el('div', { class: 'brow' }, el('b', { text: e.name }), el('span', { class: 'tag ' + f.kind, text: f.code }), el('span', { class: 'why', text: f.detail })); };
+    v.append(el('section', { class: 'band split' },
+      el('div', { class: 'stack' }, el('div', { class: 'label', text: 'Safety first' }), el('h2', { text: 'Kept out for you, with the reason.' }),
+        el('p', { class: 'muted', text: 'Safety checks run before ranking, and ranking can never bring a blocked tool back.' }),
+        el('div', { class: 'rule' }, el('b', { text: 'Not sure counts as no.' }), el('span', { text: 'An ability, risk or home fact that is not confirmed keeps the tool out.' })),
+        el('div', { class: 'rule' }, el('b', { text: 'Your home has to say yes.' }), el('span', { text: 'No confirmed wall blocking, no grab bar. Gas hob, no stove shut-off.' }))),
+      el('div', { class: 'blocked' }, el('div', { class: 'label', style: 'margin-bottom:6px', text: 'Kept out right now' }),
+        ...(showEx.length ? showEx.map(brow) : [el('div', { class: 'empty', text: 'Nothing was kept out for these goals.' })]),
+        recs.length ? el('div', { class: 'ok-row' }, el('span', { class: 'tag ok', text: 'PASSED' }), recs.slice(0, 3).map((r) => r.name).join(', ')) : null,
+        ex.length > 3 ? el('button', { class: 'linkbtn', text: `See all ${ex.length}`, onclick: () => tab('safety') }) : null)));
+
+    // toolkit
+    const saved = recs.filter((r) => S.saved.includes(r.tool_id)), gone = S.saved.length - saved.length;
+    if (S.saved.length) v.append(el('section', { class: 'sec' }, el('h2', { text: 'My toolkit' }), saved.length ? el('div', { class: 'tgrid' }, ...saved.map((r) => toolCard(r, false))) : null,
+      gone ? el('button', { class: 'notice', onclick: () => tab('safety') }, el('span', { text: `${plural(gone, 'saved tool no longer passes', 'saved tools no longer pass')} the safety checks for your current answers.` }), el('span', { html: CHEV_S })) : null));
+
+    // live numbers
+    v.append(el('section', { class: 'facts' },
+      el('div', { class: 'fact' }, el('b', { text: String(recs.length) }), el('span', { text: 'options that passed every safety check' })),
+      el('div', { class: 'fact' }, el('b', { text: String(ex.length) }), el('span', { text: 'tools kept out, each with a reason' })),
+      el('div', { class: 'fact' }, el('b', { text: `${assessed}/${Object.keys(T.dimensions).length}` }), el('span', { text: 'abilities assessed. The rest count as a limit.' }))));
+
+    if (gaps.length) v.append(el('section', { class: 'sec' }, el('div', { class: 'label', text: 'Quick answers that unlock more' }), el('div', { class: 'asks' }, ...gaps.map(gapRow))));
+
+    v.append(el('section', { class: 'final' }, el('h2', { style: 'max-width:16em', text: 'Bring this to your therapist.' }), el('p', { text: 'A plain-text summary of your answers, what passed and why each other tool was kept out.' }), el('button', { class: 'btn big', text: 'Open the summary', onclick: openSummary }), el('p', { class: 'fine', style: 'opacity:.85;font-size:14px', text: 'Saved only on this device.' })));
+    v.append(previewNotice(), el('p', { class: 'foot-note', text: 'Decision support only. Not a medical device, and not a substitute for assessment by a qualified occupational therapist.' }));
   },
 
   explore(v) {
@@ -701,57 +787,57 @@ const PAGES = {
       list.replaceChildren();
       const cur = run({ category: S.cat, chips: S.chips, text: S.text });
       let recs = cur.recommendations; if (S.task) recs = recs.filter((r) => r.addresses.includes(S.task));
-      const chipsBox = el('div', { class: 'chips' }, ...cur.browse.chips.map((c) => el('button', { class: 'chip', 'aria-pressed': String(S.chips.includes(c.id)), text: `${c.label} · ${c.count}`, onclick: () => { const i = S.chips.indexOf(c.id); i < 0 ? S.chips.push(c.id) : S.chips.splice(i, 1); draw(); } })));
-      const active = el('div', { class: 'row2' });
-      if (S.cat) active.append(el('button', { class: 'chip', 'aria-pressed': 'true', text: CAT[S.cat].label + '  ×', onclick: () => { S.cat = null; draw(); } }));
-      if (S.task) active.append(el('button', { class: 'chip', 'aria-pressed': 'true', text: T.tasks[S.task].label + '  ×', onclick: () => { S.task = null; draw(); } }));
-      list.append(chipsBox); if (active.children.length) list.append(active);
+      const chips = el('div', { class: 'chips' }, ...cur.browse.chips.map((c) => el('button', { class: 'chip', 'aria-pressed': String(S.chips.includes(c.id)), text: `${c.label} \u00b7 ${c.count}`, onclick: () => { const i = S.chips.indexOf(c.id); i < 0 ? S.chips.push(c.id) : S.chips.splice(i, 1); draw(); } })));
+      if (S.cat) chips.append(el('button', { class: 'chip', 'aria-pressed': 'true', text: CAT[S.cat].label + '  \u00d7', onclick: () => { S.cat = null; draw(); } }));
+      if (S.task) chips.append(el('button', { class: 'chip', 'aria-pressed': 'true', text: T.tasks[S.task].label + '  \u00d7', onclick: () => { S.task = null; draw(); } }));
+      list.append(chips);
       if (!recs.length) list.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'No safe tool matches. Clear a filter, or open Safety to see what is blocking.' }));
-      else list.append(el('div', { class: 'list' }, ...recs.map((r, i) => toolItem(r, i === 0 && !S.text))));
+      else list.append(el('div', { class: 'tgrid' }, ...recs.map((r, i) => toolCard(r, i === 0 && !S.text && !S.cat && !S.task))));
     };
-    v.append(el('div', { class: 'head' }, el('h1', { text: 'Explore' }), el('p', { text: 'Only tools that passed every safety check are listed.' })), searchBox(S.text, (t) => { S.text = t; draw(); }), list); draw();
+    v.append(el('div', { class: 'head' }, el('h1', { class: 'pageh', text: 'Explore' }), el('p', { text: 'Only tools that passed every safety check are listed.' })), searchBox(S.text, (t) => { S.text = t; draw(); }), list); draw();
   },
 
   tool(v, id) {
     const t = toolOf(id), caps = S.profile.person.capacities, r = run({}).recommendations.find((x) => x.tool_id === id), color = CAT[t.category].color;
-    v.append(el('div', { class: 'hero', style: `background:${color};color:${onColor(color)}` }, el('span', { class: 'label', style: 'color:inherit;opacity:.8', text: `${CAT[t.category].label} · ${t.kind === 'device' ? 'Device' : t.kind === 'digital' ? 'Digital' : 'Everyday workaround'}` }), el('h1', { text: t.name })));
+    const left = el('div', { class: 'stack' }), right = el('div', { class: 'stack' });
+    left.append(el('div', { class: 'hero-t', style: `background:${color};color:${onColor(color)}` }, el('span', { class: 'label', style: 'color:inherit;opacity:.8', text: `${CAT[t.category].label} \u00b7 ${t.kind === 'device' ? 'Device' : t.kind === 'digital' ? 'Digital' : 'Everyday workaround'}` }), el('h1', { text: t.name })));
     if (r) {
-      const btn = el('button', { class: 'btn savebtn' + (S.saved.includes(id) ? ' ghost' : ''), text: S.saved.includes(id) ? 'Saved to my toolkit' : 'Save to my toolkit' });
+      const btn = el('button', { class: 'btn' + (S.saved.includes(id) ? ' ghost' : ''), style: 'align-self:flex-start', text: S.saved.includes(id) ? 'Saved to my toolkit' : 'Save to my toolkit' });
       btn.addEventListener('click', () => { setIn(S.saved, id, !S.saved.includes(id)); btn.textContent = S.saved.includes(id) ? 'Saved to my toolkit' : 'Save to my toolkit'; btn.classList.toggle('ghost', S.saved.includes(id)); });
-      v.append(btn);
+      left.append(btn);
     }
-    v.append(el('p', { style: 'margin:0', text: t.summary }));
-    v.append(el('div', { class: 'sec' }, el('h3', { text: 'Helps you' }), el('div', { class: 'row2' }, ...t.addresses.map((a) => el('span', { class: 'tag', text: T.tasks[a].label })))));
+    left.append(el('p', { text: t.summary }), el('div', { class: 'sec' }, el('h3', { text: 'Helps you' }), el('div', { class: 'row2' }, ...t.addresses.map((a) => el('span', { class: 'tag plain', text: T.tasks[a].label })))));
+    if (r && r.cautions.length) left.append(el('div', { class: 'box' }, el('h3', { text: 'Take care' }), ...r.cautions.map((c) => el('div', { class: 'check warn' }, el('i', { text: '!' }), el('span', { text: c })))));
     const checks = [];
     for (const [dim, raw] of Object.entries(t.demands)) { const min = typeof raw === 'number' ? raw : raw.min; checks.push(`${T.dimensions[dim].label}: you are at ${caps[dim] ?? 'not assessed'}, this needs ${min}${typeof raw === 'object' && raw.critical && t.hazards.severity === 'high' ? ' plus a safety margin' : ''}`); }
     for (const tag of t.environment.requires_all) checks.push(`Home: ${T.environment_tags[tag].label}`);
     for (const tag of t.environment.forbids_any) checks.push(`Home has no: ${T.environment_tags[tag].label.toLowerCase()}`);
     for (const tag of [...t.tech.daily_use, ...t.tech.setup]) checks.push(`Tech: ${T.tech_tags[tag]}`);
-    v.append(el('div', { class: 'box' }, el('h3', { text: 'Why it fits you' }), ...(checks.length ? checks : ['No ability, home or tech requirements.']).map((c) => el('div', { class: 'check' }, el('i', { text: '✓' }), el('span', { text: c })))));
-    if (r && r.cautions.length) v.append(el('div', { class: 'box' }, el('h3', { text: 'Take care' }), ...r.cautions.map((c) => el('div', { class: 'check warn' }, el('i', { text: '!' }), el('span', { text: c })))));
+    right.append(el('div', { class: 'box' }, el('h3', { text: 'Why it fits you' }), ...(checks.length ? checks : ['No ability, home or tech requirements.']).map((c) => el('div', { class: 'check' }, el('i', { text: '\u2713' }), el('span', { text: c })))));
     if (r) {
       const names = { headroom: 'Ability margin', coverage: 'Covers your goals', simplicity: 'Simplicity', hazard: 'Low hazard', evidence: 'Evidence', cost: 'Low cost' };
-      v.append(el('div', { class: 'box' }, el('div', { class: 'linkrow' }, el('h3', { text: 'How it ranked' }), el('span', { class: 'mono', text: r.score.toFixed(2) })),
+      right.append(el('div', { class: 'box' }, el('div', { class: 'linkrow' }, el('h3', { text: 'How it ranked' }), el('span', { class: 'mono', text: r.score.toFixed(2) })),
         ...Object.entries(r.breakdown).map(([k, val]) => el('div', { class: 'meter' }, el('span', { text: names[k] }), el('div', { class: 'bar2' }, el('i', { style: `width:${Math.round(val * 100)}%` })), el('span', { class: 'mono', text: val.toFixed(2) }))),
-        el('div', { class: 'muted', style: 'font-size:12px', text: 'Ranking only orders tools that already passed every safety check. It can never bring back a blocked one.' })));
-    } else v.append(el('div', { class: 'empty', text: 'This tool no longer passes the safety checks for your current answers.' }));
-    v.append(el('div', { class: 'muted', style: 'font-size:12px', text: `Catalogue status: ${t.safety_review.status}. Decision support only; not a substitute for an occupational therapist.` }));
+        el('div', { class: 'muted', style: 'font-size:13px', text: 'Ranking only orders tools that already passed every safety check. It can never bring back a blocked one.' })));
+    } else right.append(el('div', { class: 'empty', text: 'This tool no longer passes the safety checks for your current answers.' }));
+    right.append(el('div', { class: 'muted', style: 'font-size:13px', text: `Catalogue status: ${t.safety_review.status}. Decision support only; not a substitute for an occupational therapist.` }));
+    v.append(el('div', { class: 'tool-grid' }, left, right));
   },
 
   safety(v) {
     const all = run({}), hard = all.excluded.filter((e) => e.failures.some((f) => f.kind === 'hard')), info = all.excluded.filter((e) => !hard.includes(e) && e.could_unlock), other = all.excluded.filter((e) => !hard.includes(e) && !info.includes(e));
-    v.append(el('div', { class: 'head' }, el('h1', { text: 'Kept out for your safety' }), el('p', { text: `${all.excluded.length} of ${all.meta.evaluated} tools were removed. Anything not confirmed counts as unsafe.` })));
+    v.append(el('div', { class: 'head' }, el('h1', { class: 'pageh', text: 'Kept out for your safety' }), el('p', { text: `${all.excluded.length} of ${all.meta.evaluated} tools were removed. Anything not confirmed counts as unsafe.` })));
     const gaps = all.assessment_gaps.filter((x) => x.could_unlock);
-    if (gaps.length) v.append(el('div', { class: 'sec' }, el('h3', { text: 'Answer to unlock' }), ...gaps.map(gapRow)));
-    const group = (title, list, note) => list.length ? el('div', { class: 'sec' }, el('h3', { text: title }), note ? el('div', { class: 'muted', style: 'font-size:13px', text: note }) : null,
-      ...list.map((e) => el('div', { class: 'blocked' }, el('b', { text: e.name }), ...e.failures.map((f) => el('div', { class: 'reason' }, el('span', { class: 'tag ' + f.kind, text: f.code }), el('span', { text: f.detail })))))) : null;
+    if (gaps.length) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Answer to unlock' }), el('div', { class: 'asks' }, ...gaps.map(gapRow))));
+    const group = (title, list, note) => list.length ? el('div', { class: 'sec', style: 'margin-top:12px' }, el('h2', { style: 'font-size:26px', text: title }), note ? el('p', { class: 'muted', text: note }) : null,
+      el('div', { class: 'bgrid' }, ...list.map((e) => el('div', { class: 'bcard' }, el('b', { text: e.name }), ...e.failures.map((f) => el('div', { class: 'reason' }, el('span', { class: 'tag ' + f.kind, text: f.code }), el('span', { text: f.detail }))))))) : null;
     v.append(group('Not safe for you', hard, 'A limit, a risk flag or a home condition rules these out. Confirming more facts will not change this.'), group('Waiting on information', info, 'Not recommended until the missing facts are confirmed.'), group('Other', other));
     if (!all.excluded.length) v.append(el('div', { class: 'empty', text: 'Nothing was removed for these goals.' }));
   },
 
   profile(v) {
     const p = S.profile, dims = Object.keys(T.dimensions), assessed = dims.filter((d) => p.person.capacities[d] != null).length;
-    v.append(el('div', { class: 'head' }, el('h1', { text: 'Profile' }), el('p', { text: 'Saved on this device only. Change anything and your options update.' })));
+    v.append(el('div', { class: 'head' }, el('h1', { class: 'pageh', text: 'Profile' }), el('p', { text: 'Saved on this device only. Change anything and your options update.' })));
     const row = (title, sub, page) => el('button', { class: 'rowlink', onclick: () => go(page) }, el('span', {}, el('b', { text: title }), el('small', { text: sub })), el('span', { html: CHEV }));
     v.append(el('div', { class: 'rows' },
       row('What I want to do', `${p.occupation.goals.length} of ${Object.keys(T.tasks).length} selected`, 'p_goals'),

@@ -26,7 +26,7 @@ The reference UI is a search bar, a row of quick-filter chips, and colour-coded 
 
 | Path                             | Purpose                                                                    |
 |----------------------------------|----------------------------------------------------------------------------|
-| `data/taxonomy.json`             | Controlled vocabulary: 19 capacity dimensions, risk flags, env/tech tags, categories, chips, tasks |
+| `data/taxonomy.json`             | Controlled vocabulary: 20 capacity dimensions, risk flags, env/tech tags, categories, chips, tasks |
 | `schema/tool.schema.json`        | JSON Schema (draft-07) for a catalogue entry                               |
 | `schema/profile.schema.json`     | JSON Schema for a PEO profile                                              |
 | `data/tools.seed.json`           | 18 seed tools / workarounds (draft, unreviewed)                            |
@@ -38,7 +38,7 @@ The reference UI is a search bar, a row of quick-filter chips, and colour-coded 
 ## The app (`demo/`)
 
 `node demo/build.mjs` builds `demo/peo-matcher.html`: a single-file mobile-style app that inlines the real engine.
-First run is a setup flow that only asks what the chosen goals make relevant (about 12 of 19 ability questions for
+First run is a setup flow that only asks what the chosen goals make relevant (about 12 of 20 ability questions for
 a two-goal example). Answers are saved in the browser's `localStorage` on that device only; nothing is sent anywhere.
 Features: safe-options browse (category cards, chips, search), tool detail with why-it-fits, a saved toolkit that is
 re-checked against the current answers, the Safety tab listing every excluded tool with its reason and one-tap
@@ -49,7 +49,7 @@ Run: `npm test`, `node src/cli.mjs post_stroke_left_hemiparesis --allow-draft`
 
 ## Data model
 
-**Person** - `capacities`: 19 dimensions on an ordinal 0-4 scale (0 unable, 4 typical), `null`/absent = *not assessed*;
+**Person** - `capacities`: 20 dimensions on an ordinal 0-4 scale (0 unable, 4 typical), `null`/absent = *not assessed*;
 `risk_flags`; `risk_screening_complete` (explicit boolean, required); `tech_literacy` (tags the person demonstrably holds);
 `budget_band`; `preferences.prefer_low_tech`.
 
