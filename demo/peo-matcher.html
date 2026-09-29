@@ -98,7 +98,7 @@ main{flex:1;overflow-y:auto;overflow-x:hidden;padding:22px 20px 24px;display:fle
 .vlabel{position:absolute;left:10px;top:10px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(255,255,255,.9);color:var(--ink);border-radius:8px;padding:3px 8px}
 .pt i svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .vrow .vthumb .ill{display:none}
-.tabs{grid-template-columns:repeat(4,1fr)!important}
+.tabs{grid-template-columns:repeat(5,1fr)!important}
 .tab[aria-current=page]{color:var(--accent)!important}
 .notice{display:flex;gap:12px;align-items:center;justify-content:space-between;border-radius:16px;padding:12px 14px;background:var(--warn-bg);color:var(--warn);font-size:13px;cursor:pointer;border:0;text-align:left;width:100%}
 .notice.safe{background:var(--ok-bg);color:var(--ok)}
@@ -597,8 +597,9 @@ function run(query) {
 const toolOf = (id) => TOOLS.find((t) => t.id === id);
 
 // ---------- router
+ICON.categories = '<rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/>';
 ICON.learn = '<rect x="3.5" y="5" width="17" height="14" rx="3.5"/><path d="M10.5 9.5l4 2.5-4 2.5z"/>';
-const TABS = [['home', 'Home'], ['explore', 'Explore'], ['learn', 'Learn'], ['profile', 'Profile']];
+const TABS = [['home', 'Home'], ['explore', 'Explore'], ['categories', 'Categories'], ['learn', 'Learn'], ['profile', 'Profile']];
 function tab(name) { S.stack = [{ page: name }]; render(); }
 function go(page, arg) { S.stack.push({ page, arg }); render(); }
 function back() { if (S.stack.length > 1) S.stack.pop(); render(); }
@@ -858,7 +859,7 @@ const PAGES = {
     }
 
     // browse by area: round shortcuts
-    v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Browse by area' }),
+    v.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('div', { class: 'label', text: 'Browse by area' }), el('button', { class: 'link', text: 'See all', onclick: () => tab('categories') })),
       el('div', { class: 'circs' }, ...T.categories.map((c) => el('button', { class: 'circ', onclick: () => go('category', c.id) }, el('span', { class: 'dot', style: `background:${c.color}` }, ill(c.id)), el('span', { text: SHORT[c.id] }))))));
 
     if (saved.length) v.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'My toolkit' })),
@@ -896,18 +897,25 @@ const PAGES = {
         if (!r.length && !vids.length && !checks.length) box.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'Nothing safe matches that. Clear the search, or try a check-in in Learn to open more up.' }));
         return;
       }
-      // collage: featured carousel, categories, videos, check-ins
+      // collage: featured carousel, videos, check-ins
       if (recs.length) box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Best for you' }), el('button', { class: 'link', text: 'See all', onclick: () => go('category', '__best') })),
         el('div', { class: 'hscroll' }, ...recs.slice(0, 5).map((r) => { const c = CAT[r.category].color; return el('button', { class: 'fcard', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', r.tool_id) }, el('b', { text: r.name }), el('span', { text: CAT[r.category].label }), ill(r.category)); }))));
-      const cards = el('div', { class: 'cards' });
-      cards.append(catCard('Best matches', recs.length ? `${recs.length} safe option${recs.length === 1 ? '' : 's'}` : 'Nothing safe yet', FEATURED_COLOR, 'featured', () => go('category', '__best')));
-      for (const c of T.categories) { const n = recs.filter((r) => r.category === c.id).length; cards.append(catCard(c.label, n ? `${n} safe option${n === 1 ? '' : 's'}` : 'Nothing safe yet', c.color, c.id, () => go('category', c.id))); }
-      box.append(el('div', { class: 'sec' }, el('h2', { text: 'Categories' }), cards));
       const vids = VIDEOS.filter((x) => videoState(x, ids) !== 'blocked').slice(0, 6);
       if (vids.length) box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Watch and learn' }), el('button', { class: 'link', text: 'See all', onclick: () => tab('learn') })), el('div', { class: 'hscroll' }, ...vids.map((x) => videoNode(x, videoState(x, ids), false)))));
       box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Check-ins' }), el('button', { class: 'link', text: 'See all', onclick: () => tab('learn') })), el('div', { class: 'hscroll' }, ...CHECKINS.map((c) => checkinCard(c, all, false)))));
     };
     v.append(searchBox(S.text, (t) => { S.text = t; draw(); }), box); draw();
+  },
+
+  categories(v) {
+    const g = S.profile.occupation.goals, recs = run({}).recommendations, cards = el('div', { class: 'cards' });
+    const sub = (n, inGoals) => (n ? `${n} safe option${n === 1 ? '' : 's'}` : inGoals ? 'Nothing safe yet' : 'Not in your goals');
+    cards.append(catCard('Best matches', sub(recs.length, true), FEATURED_COLOR, 'featured', () => go('category', '__best')));
+    for (const c of T.categories) {
+      const n = recs.filter((r) => r.category === c.id).length, inGoals = !g.length || Object.entries(T.tasks).some(([id, t]) => t.category === c.id && g.includes(id));
+      cards.append(catCard(c.label, sub(n, inGoals), c.color, c.id, () => go('category', c.id)));
+    }
+    v.append(el('h1', { text: 'Categories' }), cards);
   },
 
   category(v, id) {
