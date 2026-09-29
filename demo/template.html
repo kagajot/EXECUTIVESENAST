@@ -222,11 +222,6 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .step b{display:block;font-size:17px;line-height:1.25}
 .step p{margin:3px 0 0;color:var(--muted);font-size:15px;line-height:1.45}
 .box.warnbox{background:var(--warn-bg)} .box.warnbox h3{color:var(--warn)} .box.warnbox .check span{color:var(--ink)}
-.stephead{display:flex;align-items:baseline;gap:12px}.stephead h2{font-size:20px}.stephead .link{margin-left:auto}
-.step{background:none;border:0;padding:0;width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit}
-.step[aria-checked=true] b,.step[aria-checked=true] p{opacity:.55}
-.step[aria-checked=true] .num{background:var(--ok);font-size:16px}
-.eg{margin-top:6px!important;display:inline-block;background:var(--surface);color:var(--ink)!important;border-radius:10px;padding:6px 10px;font-size:14px!important}
 </style>
 
 <div class="stage">
@@ -265,15 +260,15 @@ const ICON = {
 // ---------- state + on-device storage (this browser only; nothing is sent anywhere)
 const LS = 'peo.app.v1';
 const blank = () => ({ person: { label: 'My profile', capacities: {}, risk_flags: [], risk_screening_complete: false, tech_literacy: [], budget_band: 3 }, environment: { confirmed_tags: [] }, occupation: { goals: [] } });
-const S = { profile: blank(), saved: [], onboarded: false, review: false, step: 0, stack: [{ page: 'onboard' }], cat: null, chips: [], text: '', task: null, confirmReset: false, learnTab: 'videos', done: {} };
+const S = { profile: blank(), saved: [], onboarded: false, review: false, step: 0, stack: [{ page: 'onboard' }], cat: null, chips: [], text: '', task: null, confirmReset: false, learnTab: 'videos' };
 function load() {
   try {
     const d = JSON.parse(localStorage.getItem(LS) || 'null');
-    if (d && d.profile) { validateProfile(d.profile, T); S.profile = d.profile; S.saved = (d.saved || []).filter((id) => TOOLS.some((t) => t.id === id)); S.onboarded = !!d.onboarded; S.review = !!d.review; S.done = d.done && typeof d.done === 'object' ? d.done : {}; S.step = d.step || 0; }
+    if (d && d.profile) { validateProfile(d.profile, T); S.profile = d.profile; S.saved = (d.saved || []).filter((id) => TOOLS.some((t) => t.id === id)); S.onboarded = !!d.onboarded; S.review = !!d.review; S.step = d.step || 0; }
   } catch { S.profile = blank(); }
   S.stack = [{ page: S.onboarded ? 'home' : 'onboard' }];
 }
-function persist() { try { localStorage.setItem(LS, JSON.stringify({ profile: S.profile, saved: S.saved, done: S.done, onboarded: S.onboarded, review: S.review, step: S.step })); } catch {} }
+function persist() { try { localStorage.setItem(LS, JSON.stringify({ profile: S.profile, saved: S.saved, onboarded: S.onboarded, review: S.review, step: S.step })); } catch {} }
 
 function run(query) {
   const p = clone(S.profile); p.occupation.query = query;
@@ -448,7 +443,7 @@ const GUIDES = [
   { id: 'g_pills', title: "Set up a weekly pill organizer", category: 'medication_health', tool: 'pill_organizer_alarm', minutes: 3,
     steps: [
       { t: "Start from the list", d: "Ask your pharmacist or clinician for a current list of what to take and when." },
-      { t: "Pick one time and place", d: "Fill it once a week, in good light, at the same table, with the list beside you.", e: "Sunday morning at the kitchen table." },
+      { t: "Pick one time and place", d: "Fill it once a week, in good light, at the same table, with the list beside you." },
       { t: "One day at a time", d: "Check each compartment against the list before moving on to the next." },
       { t: "Get the first fill checked", d: "Ask a helper or your pharmacist to look over it." },
       { t: "Match the alarms", d: "Set alarms for the dose times and keep the organizer where you will see it, for example next to breakfast." } ],
@@ -456,8 +451,8 @@ const GUIDES = [
   { id: 'g_calendar', title: "Set up a wall calendar routine", category: 'memory_planning', tool: 'paper_wall_calendar', minutes: 2,
     steps: [
       { t: "Choose one spot", d: "Pick a place you pass every day, at eye level." },
-      { t: "Write it big", d: "Add each appointment in large print with the time and place.", e: "Dentist, Tuesday 2:30 pm, Main Street clinic." },
-      { t: "Add a daily board", d: "Use a whiteboard beside it for the three main things today.", e: "Today: pills, call Sam, post the letter." },
+      { t: "Write it big", d: "Add each appointment in large print with the time and place." },
+      { t: "Add a daily board", d: "Use a whiteboard beside it for the three main things today." },
       { t: "Check at a fixed time", d: "Look at it at the same point each day, for example with breakfast." },
       { t: "Reset in the evening", d: "Cross off what is done and write up tomorrow." } ],
     watch: [] },
@@ -471,16 +466,16 @@ const GUIDES = [
     watch: ["Have someone with you the first several times.", "Never stand on the bench or stand in the tub while it is wet."] },
   { id: 'g_routine', title: "Build a daily routine you can follow", category: 'memory_planning', minutes: 2,
     steps: [
-      { t: "Pick three to five things", d: "Choose what matters most each day, not everything.", e: "Take morning medication. Eat lunch. Check the calendar." },
-      { t: "Attach each to a habit", d: "Link it to something you already do, like after breakfast or before bed.", e: "Medication goes with the first cup of tea." },
-      { t: "Leave a cue", d: "Put a note, a photo or the item itself where the task happens.", e: "A note on the kettle. The pill box beside the toaster." },
-      { t: "Keep it the same", d: "Repeat it unchanged for two weeks before you adjust anything.", e: "Same time and same order, every day, for two weeks." },
-      { t: "Ask someone to check in", d: "A short call or a look at the list keeps it going.", e: "Agree a two-minute call every Sunday evening." } ],
+      { t: "Pick three to five things", d: "Choose what matters most each day, not everything." },
+      { t: "Attach each to a habit", d: "Link it to something you already do, like after breakfast or before bed." },
+      { t: "Leave a cue", d: "Put a note, a photo or the item itself where the task happens." },
+      { t: "Keep it the same", d: "Repeat it unchanged for two weeks before you adjust anything." },
+      { t: "Ask someone to check in", d: "A short call or a look at the list keeps it going." } ],
     watch: [] },
   { id: 'g_visit', title: "Get ready for a visit with your therapist", minutes: 2, action: 'summary',
     steps: [
-      { t: "Name the hardest tasks", d: "Write down what is hardest and one recent example of each.", e: "Getting into the shower takes 20 minutes and I have to rest twice." },
-      { t: "Bring your summary", d: "The Profile tab has a summary of your answers and results you can copy and print.", e: "Profile, then Summary for my therapist, then Copy summary." },
+      { t: "Name the hardest tasks", d: "Write down what is hardest and one recent example of each." },
+      { t: "Bring your summary", d: "The Profile tab has a summary of your answers and results you can copy and print." },
       { t: "List what you already use", d: "Include tools, workarounds and help from other people." },
       { t: "Mention risks", d: "Note any falls, dizziness, pain, skin problems or near misses." },
       { t: "Bring your questions", d: "Write them down so you do not forget them in the room." } ],
@@ -736,16 +731,7 @@ const PAGES = {
     const g = GUIDES.find((x) => x.id === id), m = guideMeta(g), st = guideState(g);
     v.append(el('div', { class: 'catbig', style: `background:${m.color};color:${onColor(m.color)}` }, el('h1', { text: g.title }), el('span', { text: `${g.steps.length} steps · ${g.minutes} min read` }), ill(m.ill)));
     if (st === 'blocked') { v.append(el('div', { class: 'empty', text: 'This tool does not pass the safety checks for you yet. Ask your therapist about it.' })); return; }
-    const doneOf = () => (S.done[g.id] ??= []), count = () => g.steps.filter((_, i) => doneOf()[i]).length;
-    const head = el('div', { class: 'stephead' }), list = el('div', { class: 'steps' });
-    const paint = () => {
-      const n = count();
-      head.replaceChildren(el('h2', { text: n === g.steps.length ? 'All done ✓' : 'Steps' }), el('span', { class: 'muted', text: `${n} of ${g.steps.length} done` }), n ? el('button', { class: 'link', text: 'Start over', onclick: () => { S.done[g.id] = []; persist(); paint(); } }) : null);
-      [...list.children].forEach((b, i) => { const on = !!doneOf()[i]; b.setAttribute('aria-checked', String(on)); b.querySelector('.num').textContent = on ? '✓' : String(i + 1); });
-    };
-    g.steps.forEach((x, i) => list.append(el('button', { class: 'step', role: 'checkbox', 'aria-checked': 'false', onclick: () => { doneOf()[i] = !doneOf()[i]; persist(); paint(); } },
-      el('span', { class: 'num', text: String(i + 1) }), el('div', {}, el('b', { text: x.t }), el('p', { text: x.d }), x.e ? el('p', { class: 'eg', text: 'For example: ' + x.e }) : null))));
-    v.append(head, list); paint();
+    v.append(el('div', { class: 'steps' }, ...g.steps.map((x, i) => el('div', { class: 'step' }, el('span', { class: 'num', text: String(i + 1) }), el('div', {}, el('b', { text: x.t }), el('p', { text: x.d }))))));
     if (g.watch.length) v.append(el('div', { class: 'box warnbox' }, el('h3', { text: 'Watch out' }), ...g.watch.map((w) => el('div', { class: 'check warn' }, el('i', { text: '!' }), el('span', { text: w })))));
     if (g.tool) v.append(el('button', { class: 'btn', text: 'See the tool', onclick: () => go('tool', g.tool) }));
     if (g.action === 'summary') v.append(el('button', { class: 'btn', text: 'Open my summary', onclick: openSummary }));
