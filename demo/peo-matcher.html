@@ -200,6 +200,8 @@ textarea.sum{width:100%;min-height:340px;font:12px/1.5 var(--f-mono);color:var(-
 .herocard p{flex:none;-webkit-line-clamp:2}
 .chk.full b,.chk.full span{max-width:66%}
 .herocard h2{font-size:22px;max-width:68%}
+.extico{position:absolute;right:8px;top:8px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--ink);display:grid;place-items:center}
+.vrow .vthumb .extico{width:18px;height:18px;right:5px;top:5px}
 </style>
 
 <div class="stage">
@@ -628,7 +630,6 @@ function toolItem(r, best) {
         el('span', { class: 'tag', text: CAT[r.category].label }), r.hazard_severity === 'moderate' || r.hazard_severity === 'high' ? el('span', { class: 'tag sev-' + r.hazard_severity, text: 'take care' }) : null)));
 }
 const searchBox = (value, oninput) => el('label', { class: 'search' }, el('span', { html: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>' }), el('input', { type: 'search', placeholder: 'Search tools, videos, check-ins', value, 'aria-label': 'Search', oninput: (e) => oninput(e.target.value) }));
-const previewNotice = () => el('button', { class: 'preview', onclick: () => go('p_settings') }, S.review ? 'Clinician review required, so nothing can be shown yet' : 'Preview catalogue, not clinician-reviewed');
 
 // ---------- controls
 function setIn(arr, v, on) { const i = arr.indexOf(v); if (on && i < 0) arr.push(v); if (!on && i >= 0) arr.splice(i, 1); refreshChrome(); }
@@ -724,9 +725,9 @@ function toolPasses(id) { return evaluateGates(toolOf(id), S.profile, { ...DEFAU
 function videoState(v) { return !v.tool ? 'general' : toolPasses(v.tool) ? 'ok' : 'blocked'; }
 function videoNode(v, state, row) {
   const c = CAT[v.category], color = c.color, a = { href: v.url, target: '_blank', rel: 'noopener noreferrer' };
-  const thumb = el('div', { class: 'vthumb', style: `background:${color}` }, ill(v.category), el('span', { class: 'play', 'aria-hidden': 'true' }), row ? null : el('span', { class: 'vlabel', text: v.label }));
+  const thumb = el('div', { class: 'vthumb', style: `background:${color}` }, ill(v.category), el('span', { class: 'play', 'aria-hidden': 'true' }), el('span', { class: 'extico', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>' }), row ? null : el('span', { class: 'vlabel', text: v.label }));
   const meta = el('div', { class: 'row2' }, el('span', { class: 'tag plain', text: row ? v.label : c.label }), state === 'blocked' ? el('span', { class: 'tag sev-moderate', text: 'not matched to you' }) : null);
-  if (row) return el('a', { class: 'vrow', ...a, 'aria-label': v.title + ' (opens YouTube)' }, thumb, el('div', { class: 'txt' }, el('b', { text: v.title }), meta, state === 'blocked' ? el('span', { class: 'ext', text: 'This tool does not pass the safety checks for you yet. Ask your therapist before trying it.' }) : el('span', { class: 'ext', text: 'Opens YouTube' })));
+  if (row) return el('a', { class: 'vrow', ...a, 'aria-label': v.title + ' (opens YouTube)' }, thumb, el('div', { class: 'txt' }, el('b', { text: v.title }), meta, null));
   return el('a', { class: 'vcard', ...a, 'aria-label': v.title + ' (opens YouTube)' }, thumb, el('b', { text: v.title }), meta);
 }
 
@@ -803,17 +804,17 @@ const PAGES = {
       v.append(el('div', { class: 'muted', style: 'font-size:13px', text: 'Decision support, not medical advice. It does not replace an occupational therapist. Tool entries in this version have not been clinician-reviewed.' }));
       next.textContent = 'Get started';
     } else if (step === 'goals') {
-      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'What is hard right now?' }), el('p', { text: 'Pick everything that applies.' })));
+      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'What is hard right now?' })));
       for (const c of T.categories) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: c.label }), el('div', { class: 'pills' }, ...Object.entries(T.tasks).filter(([, t]) => t.category === c.id).map(([id, t]) => togglePill(t.label, g.includes(id), '', (on) => { setIn(g, id, on); upd(); })))));
     } else if (step === 'abilities') {
-      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'How do these go, on a bad day?' }), el('p', { text: 'Answer for a bad day, not your best. If you are unsure, leave it: we then treat it as a limit.' })), LEGEND());
+      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'How do these go, on a bad day?' }), el('p', { text: 'Think of a bad day. Unsure? Leave it.' })), LEGEND());
       for (const d of rel.dims) v.append(capRow(d, QUESTION[d]));
     } else if (step === 'risk') {
-      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'Does any of this apply?' }), el('p', { text: 'These rule tools out. Select all that apply.' })));
+      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'Does any of this apply?' })));
       v.append(el('div', { class: 'pills' }, ...Object.entries(T.risk_flags).map(([f, label]) => togglePill(label, S.profile.person.risk_flags.includes(f), 'risk', (on) => setIn(S.profile.person.risk_flags, f, on)))));
       v.append(switchRow('I have read the whole list', 'Required before tools with any hazard can be shown.', S.profile.person.risk_screening_complete, (on) => { S.profile.person.risk_screening_complete = on; }));
     } else if (step === 'home') {
-      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'What is true at home?' }), el('p', { text: 'Switch on only what is definitely true. Anything left off is treated as not supported.' })));
+      v.append(el('div', { class: 'head', style: 'margin-top:14px' }, el('h1', { text: 'What is true at home?' }), el('p', { text: 'Only what is definitely true.' })));
       const blockers = new Set(TOOLS.flatMap((t) => t.environment.forbids_any));
       if (!rel.env.length) v.append(el('div', { class: 'empty', text: 'Nothing about your home is needed for the tasks you picked.' }));
       v.append(el('div', { class: 'pills' }, ...rel.env.map((t) => togglePill(T.environment_tags[t].label, S.profile.environment.confirmed_tags.includes(t), 'env' + (blockers.has(t) ? ' forb' : ''), (on) => setIn(S.profile.environment.confirmed_tags, t, on)))));
@@ -827,7 +828,7 @@ const PAGES = {
     } else {
       const r = run({});
       v.append(el('div', { class: 'head', style: 'margin-top:18px' }, el('h1', { class: 'big-h', text: r.recommendations.length ? `${r.recommendations.length} safe option${r.recommendations.length === 1 ? '' : 's'} for you.` : 'No safe match yet.' }),
-        el('p', { text: r.excluded.length ? `${r.excluded.length} tool${r.excluded.length === 1 ? ' is' : 's are'} held back for now because something is not confirmed. Answer more check-ins in Learn to open some up.` : 'Nothing was kept out.' })));
+        el('p', { text: r.excluded.length ? `${r.excluded.length} more tool${r.excluded.length === 1 ? ' is' : 's are'} held back until you confirm a few things.` : 'Nothing was kept out.' })));
       if (!r.recommendations.length && S.review) v.append(el('div', { class: 'empty', text: 'Clinician review is required and no entry has been reviewed yet.' }));
       next.textContent = 'Open my options'; next.onclick = () => { S.onboarded = true; tab('home'); };
     }
@@ -864,14 +865,16 @@ const PAGES = {
       el('div', { class: 'hscroll' }, ...saved.map((r) => { const c = CAT[r.category].color; return el('button', { class: 'fcard', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', r.tool_id) }, el('b', { text: r.name }), el('span', { text: CAT[r.category].label }), ill(r.category)); })),
       gone ? el('p', { class: 'muted', style: 'font-size:13px', text: `${gone} saved tool${gone === 1 ? ' no longer passes' : 's no longer pass'} the safety checks for your current answers.` }) : null));
 
-    // profile progress + the next questions worth answering
-    v.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Your profile' })),
-      el('button', { class: 'chk full', style: 'background:#C9A6D8;color:#141A2B', onclick: toChecks }, el('b', { text: complete ? 'Your profile is complete' : 'Complete your profile' }), el('span', { text: `${assessed} of ${dims.length} abilities answered${S.profile.person.risk_screening_complete ? '' : ' · risk screening not done'}` }), el('div', { class: 'mini' }, el('i', { style: `width:${Math.round((assessed / dims.length) * 100)}%` })), ill('shield')),
-      ...gaps.map(gapRow)));
-
-    const vids = VIDEOS.filter((x) => videoState(x, ids) !== 'blocked').slice(0, 4);
-    if (vids.length) v.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Watch and learn' }), el('button', { class: 'link', text: 'See all', onclick: () => tab('learn') })), el('div', { class: 'hscroll' }, ...vids.map((x) => videoNode(x, videoState(x, ids), false)))));
-    v.append(previewNotice());
+    // one clear next step (never two competing actions)
+    const gap = all.assessment_gaps.find((x) => x.could_unlock);
+    if (gap) {
+      const cin = (id) => CHECKINS.find((c) => c.id === id);
+      const c = gap.code === 'SCREENING_INCOMPLETE' ? cin('risks') : gap.code === 'CAPACITY_UNKNOWN' ? CHECKINS.find((x) => x.dims?.includes(gap.target)) : gap.code === 'TECH_UNCONFIRMED' ? { id: 'tech', title: 'Your tech skills', color: '#F4A6A0', ill: 'communication_tech' } : cin('home');
+      const title = gap.code === 'SCREENING_INCOMPLETE' ? 'Finish the risk screening' : gap.code === 'TECH_UNCONFIRMED' ? 'Confirm your tech skills' : gap.code === 'CAPACITY_UNKNOWN' ? `Check in: ${c.title.toLowerCase()}` : 'Confirm details about your home';
+      v.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Next step' })),
+        el('button', { class: 'chk full', style: `background:${c.color};color:${onColor(c.color)}`, onclick: () => (c.id === 'tech' ? go('p_tech') : go('checkin', c.id)) },
+          el('b', { text: title }), el('span', { text: `Opens up ${gap.could_unlock} tool${gap.could_unlock === 1 ? '' : 's'}` }), ill(c.ill))));
+    }
   },
 
   explore(v) {
@@ -929,17 +932,16 @@ const PAGES = {
 
   learn(v) {
     const all = run({}), ids = new Set(all.recommendations.map((r) => r.tool_id));
-    v.append(el('div', { class: 'head' }, el('h1', { text: 'Learn' }), el('p', { text: 'Watch how tools are used, and check in on what you can do.' })));
+    v.append(el('h1', { text: 'Learn' }));
     const body = el('div', { class: 'sec' }), seg = el('div', { class: 'seg2' });
     const draw = () => {
       [...seg.children].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.t === S.learnTab)));
       body.replaceChildren();
       if (S.learnTab === 'videos') {
-        body.append(el('div', { class: 'box' }, el('div', { class: 'muted', style: 'font-size:13px', text: 'These are YouTube videos from other people. We have not reviewed them, and what suits someone else may not suit you or your home. Check with your therapist before trying a technique.' })));
         const rank = { ok: 0, general: 1, blocked: 2 };
         body.append(...[...VIDEOS].sort((a, b) => rank[videoState(a, ids)] - rank[videoState(b, ids)]).map((x) => videoNode(x, videoState(x, ids), true)));
       } else {
-        body.append(el('p', { class: 'muted', style: 'margin:0', text: 'Short self-check-ins. Each one answers the questions that decide which tools are safe for you. Your answers save as you go.' }), ...CHECKINS.map((c) => checkinCard(c, all, true)));
+        body.append(...CHECKINS.map((c) => checkinCard(c, all, true)));
       }
     };
     for (const [t, l] of [['videos', 'Videos'], ['checkins', 'Check-ins']]) seg.append(el('button', { 'data-t': t, text: l, onclick: () => { S.learnTab = t; draw(); } }));
@@ -951,16 +953,15 @@ const PAGES = {
     v.append(el('div', { class: 'catbig', style: `background:${c.color};color:${onColor(c.color)}` }, el('h1', { text: c.title }), el('span', { text: info.label }), ill(c.ill)));
     if (c.kind === 'risk') {
       const p = S.profile.person;
-      v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Flags block tools that could hurt. Screening must be marked complete before any tool with a hazard can be shown.' }),
-        el('div', { class: 'pills' }, ...Object.entries(T.risk_flags).map(([f, label]) => togglePill(label, p.risk_flags.includes(f), 'risk', (on) => setIn(p.risk_flags, f, on)))),
+      v.append(el('div', { class: 'pills' }, ...Object.entries(T.risk_flags).map(([f, label]) => togglePill(label, p.risk_flags.includes(f), 'risk', (on) => setIn(p.risk_flags, f, on)))),
         switchRow('I have read the whole list', 'Confirm only after every flag has been asked about.', p.risk_screening_complete, (on) => { p.risk_screening_complete = on; }));
     } else if (c.kind === 'env') {
       const tags = S.profile.environment.confirmed_tags, blockers = new Set(TOOLS.flatMap((t) => t.environment.forbids_any));
-      v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Only switch on what is definitely true. Anything left off is treated as not supported. Red tags block some tools.' }));
+      v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Only what is definitely true.' }));
       const domains = {}; for (const [t, m] of Object.entries(T.environment_tags)) (domains[m.domain] ??= []).push([t, m.label]);
       for (const [dom, list] of Object.entries(domains)) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: dom }), el('div', { class: 'pills' }, ...list.map(([t, label]) => togglePill(label, tags.includes(t), 'env' + (blockers.has(t) ? ' forb' : ''), (on) => setIn(tags, t, on))))));
     } else {
-      v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Answer for a bad day, not your best. "Not sure" counts as a limit.' }), LEGEND(), ...c.dims.map((d) => capRow(d, QUESTION[d])));
+      v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Think of a bad day.' }), LEGEND(), ...c.dims.map((d) => capRow(d, QUESTION[d])));
     }
     v.append(el('button', { class: 'btn', text: 'See what this opens up', onclick: () => tab('explore') }));
   },
@@ -985,15 +986,14 @@ const PAGES = {
     if (r) {
       const names = { headroom: 'Ability margin', coverage: 'Covers your goals', simplicity: 'Simplicity', hazard: 'Low hazard', evidence: 'Evidence', cost: 'Low cost' };
       v.append(el('div', { class: 'box' }, el('div', { class: 'linkrow' }, el('h3', { text: 'How it ranked' }), el('span', { class: 'mono', text: r.score.toFixed(2) })),
-        ...Object.entries(r.breakdown).map(([k, val]) => el('div', { class: 'meter' }, el('span', { text: names[k] }), el('div', { class: 'bar2' }, el('i', { style: `width:${Math.round(val * 100)}%` })), el('span', { class: 'mono', text: val.toFixed(2) }))),
-        el('div', { class: 'muted', style: 'font-size:12px', text: 'Ranking only orders tools that already passed every safety check. It can never bring back a blocked one.' })));
+        ...Object.entries(r.breakdown).map(([k, val]) => el('div', { class: 'meter' }, el('span', { text: names[k] }), el('div', { class: 'bar2' }, el('i', { style: `width:${Math.round(val * 100)}%` })), el('span', { class: 'mono', text: val.toFixed(2) })))));
     } else v.append(el('div', { class: 'empty', text: 'This tool no longer passes the safety checks for your current answers.' }));
     v.append(el('div', { class: 'muted', style: 'font-size:12px', text: `Catalogue status: ${t.safety_review.status}. Decision support only; not a substitute for an occupational therapist.` }));
   },
 
   profile(v) {
     const p = S.profile, dims = Object.keys(T.dimensions), assessed = dims.filter((d) => p.person.capacities[d] != null).length;
-    v.append(el('div', { class: 'head' }, el('h1', { text: 'Profile' }), el('p', { text: 'Saved on this device only. Change anything and your options update.' })));
+    v.append(el('div', { class: 'head' }, el('h1', { text: 'Profile' })));
     const row = (title, sub, page) => el('button', { class: 'rowlink', onclick: () => go(page) }, el('span', {}, el('b', { text: title }), el('small', { text: sub })), el('span', { html: CHEV }));
     v.append(el('div', { class: 'rows' },
       row('What I want to do', `${p.occupation.goals.length} of ${Object.keys(T.tasks).length} selected`, 'p_goals'),
@@ -1008,23 +1008,22 @@ const PAGES = {
     const text = summaryText(), ta = el('textarea', { class: 'sum', readonly: true, 'aria-label': 'Summary text' }); ta.value = text;
     const btn = el('button', { class: 'btn', text: 'Copy summary' });
     btn.addEventListener('click', async () => { try { await navigator.clipboard.writeText(text); btn.textContent = 'Copied'; } catch { ta.focus(); ta.select(); btn.textContent = 'Now copy the selected text'; } });
-    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Share this with your occupational therapist or doctor. It lists your answers, what passed the safety checks and why each other tool was kept out.' }), btn, ta);
+    v.append(btn, ta);
   },
 
   p_goals(v) {
     const g = S.profile.occupation.goals;
-    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Pick what you want to do. With none picked, every safe tool is shown.' }));
+    v.append();
     for (const c of T.categories) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: c.label }), el('div', { class: 'pills' }, ...Object.entries(T.tasks).filter(([, t]) => t.category === c.id).map(([id, t]) => togglePill(t.label, g.includes(id), '', (on) => setIn(g, id, on))))));
   },
   p_caps(v) {
-    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'What you can do reliably and safely on a bad day. "Not sure" counts against a tool.' }), LEGEND());
+    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Think of a bad day.' }), LEGEND());
     const groups = {}; for (const [d, m] of Object.entries(T.dimensions)) (groups[m.group] ??= []).push(d);
     for (const [grp, dims] of Object.entries(groups)) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: grp }), ...dims.map((d) => capRow(d, QUESTION[d]))));
   },
   p_risk(v) {
     const p = S.profile.person;
-    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Flags block tools that could hurt. Screening must be marked complete before any tool with a hazard is eligible.' }),
-      el('div', { class: 'pills' }, ...Object.entries(T.risk_flags).map(([f, label]) => togglePill(label, p.risk_flags.includes(f), 'risk', (on) => setIn(p.risk_flags, f, on)))),
+    v.append(el('div', { class: 'pills' }, ...Object.entries(T.risk_flags).map(([f, label]) => togglePill(label, p.risk_flags.includes(f), 'risk', (on) => setIn(p.risk_flags, f, on)))),
       switchRow('I have read the whole list', 'Confirm only after every flag has been asked about.', p.risk_screening_complete, (on) => { p.risk_screening_complete = on; }));
   },
   p_tech(v) {
@@ -1036,13 +1035,13 @@ const PAGES = {
   },
   p_env(v) {
     const tags = S.profile.environment.confirmed_tags, blockers = new Set(TOOLS.flatMap((t) => t.environment.forbids_any));
-    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Only switch on what is true. Anything left off is treated as not supported. Red tags block some tools.' }));
+    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Only what is true.' }));
     const domains = {}; for (const [t, m] of Object.entries(T.environment_tags)) (domains[m.domain] ??= []).push([t, m.label]);
     for (const [dom, list] of Object.entries(domains)) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: dom }), el('div', { class: 'pills' }, ...list.map(([t, label]) => togglePill(label, tags.includes(t), 'env' + (blockers.has(t) ? ' forb' : ''), (on) => setIn(tags, t, on))))));
   },
   p_settings(v) {
     v.append(switchRow('Require clinician review', 'Only clinician-reviewed entries may be shown. Every entry is currently an unreviewed draft, so turning this on shows nothing.', S.review, (on) => { S.review = on; }));
-    v.append(el('div', { class: 'box' }, el('h3', { text: 'About' }), el('div', { class: 'muted', text: 'Matches people to assistive tools and everyday workarounds using the Person-Environment-Occupation model. It supports compensation and adaptation, not rehabilitation. Thresholds are engineering placeholders. Decision support only.' })));
+    v.append(el('div', { class: 'box' }, el('h3', { text: 'About' }), el('div', { class: 'muted', text: 'Matches people to assistive tools and everyday workarounds using the Person-Environment-Occupation model. It supports compensation and adaptation, not rehabilitation. Tool entries have not been reviewed by a clinician, and thresholds are engineering placeholders. Videos are third-party YouTube links we have not reviewed. Decision support only.' })));
     const ex = el('select', { class: 'sel', 'aria-label': 'Load an example', onchange: (e) => { if (!e.target.value) return; S.profile = clone(EXAMPLES[e.target.value]); S.onboarded = true; S.saved = []; tab('home'); } }, el('option', { value: '', text: 'Load an example profile (replaces your answers)' }), ...Object.entries(EXAMPLES).map(([k, p]) => el('option', { value: k, text: p.person.label })));
     v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Try an example' }), ex));
     const reset = el('button', { class: 'btn ghost', text: S.confirmReset ? 'Tap again to erase everything' : 'Erase my answers and start over' });
