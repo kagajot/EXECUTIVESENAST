@@ -202,6 +202,16 @@ textarea.sum{width:100%;min-height:340px;font:12px/1.5 var(--f-mono);color:var(-
 .herocard h2{font-size:22px;max-width:68%}
 .extico{position:absolute;right:8px;top:8px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--ink);display:grid;place-items:center}
 .vrow .vthumb .extico{width:18px;height:18px;right:5px;top:5px}
+/* background flow: soft organic curves that scroll with the content */
+body{background:#fff url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1600 900%22 preserveAspectRatio=%22xMidYMid slice%22%3E%0A%3Cpath d=%22M-40 120C120 40 300 60 360 200C420 340 280 470 120 470C-20 470 -80 300 -40 120Z%22 fill=%22%23FCD59A%22 opacity=%22.5%22/%3E%0A%3Cpath d=%22M1640 60C1500 20 1330 90 1300 230C1270 370 1400 430 1640 400Z%22 fill=%22%23E2CDEE%22 opacity=%22.55%22/%3E%0A%3Cpath d=%22M-40 640C160 560 320 700 300 820C285 910 100 940 -40 900Z%22 fill=%22%23BFE8D6%22 opacity=%22.55%22/%3E%0A%3Cpath d=%22M1640 560C1480 520 1330 620 1360 740C1390 860 1540 900 1640 880Z%22 fill=%22%23C9DDF6%22 opacity=%22.6%22/%3E%0A%3Cpath d=%22M200 880C420 820 520 900 640 860%22 fill=%22none%22 stroke=%22%23F6C3BE%22 stroke-width=%222.4%22 stroke-linecap=%22round%22 opacity=%22.8%22/%3E%0A%3Cpath d=%22M980 60C1120 100 1200 30 1300 70%22 fill=%22none%22 stroke=%22%23FCD59A%22 stroke-width=%222.4%22 stroke-linecap=%22round%22 opacity=%22.9%22/%3E%0A%3Ccircle cx=%22250%22 cy=%22560%22 r=%229%22 fill=%22%23E2CDEE%22/%3E%3Ccircle cx=%221380%22 cy=%22480%22 r=%228%22 fill=%22%23FCD59A%22/%3E%3Ccircle cx=%22120%22 cy=%2260%22 r=%226%22 fill=%22%23C9DDF6%22/%3E%0A%3C/svg%3E") center/cover no-repeat fixed}
+main#view{background:transparent url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 390 1240%22 preserveAspectRatio=%22xMidYMin slice%22%3E%0A%3Cpath d=%22M400 -20C338 36 262 16 238 104C218 180 306 226 400 204Z%22 fill=%22%23FCD59A%22 opacity=%22.55%22/%3E%0A%3Cpath d=%22M-12 372C86 326 168 424 262 392C338 366 376 330 404 340V478C344 446 292 508 202 516C112 524 52 474 -12 506Z%22 fill=%22%23E2CDEE%22 opacity=%22.5%22/%3E%0A%3Cpath d=%22M-12 646C58 614 132 654 122 734C112 812 34 844 -12 832Z%22 fill=%22%23BFE8D6%22 opacity=%22.55%22/%3E%0A%3Cpath d=%22M404 826C342 836 300 886 320 954C340 1020 392 1030 404 1030Z%22 fill=%22%23C9DDF6%22 opacity=%22.6%22/%3E%0A%3Cpath d=%22M-12 1080C70 1040 150 1100 236 1074C312 1050 356 1010 404 1022V1150C340 1130 290 1176 200 1184C112 1192 50 1152 -12 1170Z%22 fill=%22%23F6C3BE%22 opacity=%22.38%22/%3E%0A%3Cpath d=%22M-10 250C70 210 130 300 210 270C280 244 340 200 400 232%22 fill=%22none%22 stroke=%22%23FCD59A%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 opacity=%22.9%22/%3E%0A%3Cpath d=%22M-10 590C60 560 120 610 200 590C290 566 340 560 400 590%22 fill=%22none%22 stroke=%22%23E2CDEE%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 opacity=%22.9%22/%3E%0A%3Cpath d=%22M-10 940C80 900 150 970 240 944C320 920 360 900 400 918%22 fill=%22none%22 stroke=%22%23C9DDF6%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 opacity=%22.95%22/%3E%0A%3Ccircle cx=%2252%22 cy=%22150%22 r=%227%22 fill=%22%23E2CDEE%22 opacity=%22.9%22/%3E%3Ccircle cx=%22338%22 cy=%22300%22 r=%225%22 fill=%22%23FCD59A%22/%3E%3Ccircle cx=%22330%22 cy=%22620%22 r=%228%22 fill=%22%23BFE8D6%22/%3E%0A%3Ccircle cx=%2270%22 cy=%22900%22 r=%226%22 fill=%22%23F6C3BE%22 opacity=%22.9%22/%3E%3Ccircle cx=%22300%22 cy=%221140%22 r=%227%22 fill=%22%23C9DDF6%22/%3E%0A%3C/svg%3E") 0 0/100% auto repeat-y;background-attachment:local}
+main#view[data-page="explore"]{background-position:0 -330px}
+main#view[data-page="categories"]{background-position:0 -640px}
+main#view[data-page="learn"]{background-position:0 -880px}
+main#view[data-page="profile"]{background-position:0 -120px}
+main#view[data-page="category"],main#view[data-page="checkin"]{background-position:0 -520px}
+.foot{background:linear-gradient(rgba(255,255,255,0),rgba(255,255,255,.94) 42%)}
+@media (max-width:520px){body{background:#fff}}
 </style>
 
 <div class="stage">
@@ -609,7 +619,7 @@ function render() {
   const cur = S.stack[S.stack.length - 1], onb = cur.page === 'onboard', sub = S.stack.length > 1;
   $('bar').hidden = !sub; $('barTitle').textContent = sub ? (TITLES[cur.page] ?? '') : '';
   $('tabs').hidden = onb;
-  const view = $('view'); view.replaceChildren(); view.className = ''; void view.offsetWidth; view.className = 'page' + (cur.page === 'home' ? ' home' : '');
+  const view = $('view'); view.replaceChildren(); view.className = ''; void view.offsetWidth; view.className = 'page' + (cur.page === 'home' ? ' home' : ''); view.dataset.page = cur.page;
   PAGES[cur.page](view, cur.arg);
   view.scrollTop = 0;
   const base = S.stack[0].page;
