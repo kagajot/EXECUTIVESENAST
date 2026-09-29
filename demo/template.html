@@ -215,6 +215,8 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .herocard h2{-webkit-line-clamp:4}
 .herocard h2,.herocard p{display:block;-webkit-line-clamp:unset;overflow:visible}
 .chk .ill{bottom:auto;top:50%;transform:translateY(-50%);right:12px}
+.mini{height:7px;background:rgba(127,127,127,.3);background:color-mix(in srgb,currentColor 20%,transparent);max-width:60%}
+.mini i{background:currentColor}
 </style>
 
 <div class="stage">
@@ -428,7 +430,7 @@ function checkinInfo(c, all) {
 function checkinCard(c, all, full) {
   const i = checkinInfo(c, all), pct = Math.round((i.done / i.total) * 100);
   return el('button', { class: 'chk' + (full ? ' full' : ''), style: `background:${c.color};color:${onColor(c.color)}`, onclick: () => go('checkin', c.id) },
-    el('b', { text: c.title }), el('span', { text: i.label }), el('div', { class: 'mini' }, el('i', { style: `width:${pct}%` })),
+    el('b', { text: c.title }), el('span', { text: (pct === 100 ? '\u2713 ' : '') + i.label }), pct === 100 ? null : el('div', { class: 'mini' }, el('i', { style: `width:${pct}%` })),
     i.unlock ? el('span', { text: `Could unlock ${i.unlock} tool${i.unlock === 1 ? '' : 's'}` }) : null, ill(c.ill));
 }
 
