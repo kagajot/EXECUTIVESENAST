@@ -1,0 +1,619 @@
+<title>PEO Assistive Matcher</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: two panes. Left = the PEO profile you can edit. Right = what a user would see (browse cards) plus the audit trail. */
+:root{
+  --bg:#F5F6FA; --surface:#FFFFFF; --ink:#1B2235; --muted:#5D6580; --line:#E1E4EE; --accent:#3D5AF1; --accent-ink:#FFFFFF;
+  --ok:#1E8E5A; --ok-bg:#DDF3E8; --warn:#9A6200; --warn-bg:#FCEBC7; --bad:#B3261E; --bad-bg:#FBDCD9; --soft:#EDEFF6;
+  --f-display:'Bricolage Grotesque','DM Sans',system-ui,sans-serif; --f-body:'DM Sans',system-ui,sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12151F; --surface:#1B2030; --ink:#E9ECF6; --muted:#9AA3BD; --line:#2C3348; --accent:#8CA0FF; --accent-ink:#10142A;
+  --ok:#6FD3A3; --ok-bg:#163527; --warn:#F1C46B; --warn-bg:#3B2E10; --bad:#FF9C94; --bad-bg:#3E1B19; --soft:#252B3F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12151F; --surface:#1B2030; --ink:#E9ECF6; --muted:#9AA3BD; --line:#2C3348; --accent:#8CA0FF; --accent-ink:#10142A;
+  --ok:#6FD3A3; --ok-bg:#163527; --warn:#F1C46B; --warn-bg:#3B2E10; --bad:#FF9C94; --bad-bg:#3E1B19; --soft:#252B3F; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5;padding-inline:16px;padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(24px,4vw,34px);line-height:1.1}
+h2{font-size:18px} h3{font-size:15px}
+.lede{color:var(--muted);max-width:68ch;margin:6px 0 0}
+.mono{font-family:var(--f-mono);font-size:12px}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700}
+.top{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-end}
+.demo-note{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:10px 14px;max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.sec{display:flex;flex-direction:column;gap:8px}
+select,input[type=search]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:var(--soft);cursor:pointer;user-select:none;font-size:13px;border:1px solid transparent}
+.pill input{position:absolute;opacity:0;pointer-events:none}
+.pill:has(input:checked){background:var(--accent);color:var(--accent-ink)}
+.pill.risk:has(input:checked){background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+.pill.env:has(input:checked){background:var(--ok-bg);color:var(--ok);border-color:var(--ok)}
+.pill.env.forb:has(input:checked){background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
+.caps{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+.caps label{color:var(--ink)} .caps select{padding:4px 6px;font-size:13px}
+details{border-top:1px solid var(--line);padding-top:10px} summary{cursor:pointer;font-weight:700;font-family:var(--f-display);list-style-position:inside}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stat{background:var(--soft);border-radius:12px;padding:8px 12px;display:flex;flex-direction:column;min-width:96px}
+.stat b{font-family:var(--f-display);font-size:22px;line-height:1.1;font-variant-numeric:tabular-nums}
+.search{width:100%;border-radius:999px;padding:11px 16px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.card{position:relative;overflow:hidden;border:0;border-radius:18px;min-height:96px;padding:14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;font:inherit}
+.card::before,.card::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.28)}
+.card::before{width:86px;height:86px;right:-18px;top:-22px} .card::after{width:40px;height:40px;right:44px;top:34px;background:rgba(255,255,255,.2)}
+.card b{font-family:var(--f-display);font-size:17px;position:relative} .card span{position:relative;font-size:12px;opacity:.85}
+.card[aria-pressed=true]{outline:3px solid var(--ink);outline-offset:2px}
+.tool{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-top:1px solid var(--line)}
+.tool:first-child{border-top:0}
+.tool .row{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;justify-content:space-between}
+.bar{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;width:110px}.bar i{display:block;height:100%;background:var(--accent)}
+.tag{font-size:11px;border-radius:6px;padding:1px 7px;background:var(--soft);color:var(--muted)}
+.tag.sev-high{background:var(--bad-bg);color:var(--bad)} .tag.sev-moderate{background:var(--warn-bg);color:var(--warn)}
+.tag.hard{background:var(--bad-bg);color:var(--bad);font-family:var(--f-mono)} .tag.unconfirmed{background:var(--warn-bg);color:var(--warn);font-family:var(--f-mono)} .tag.preference{font-family:var(--f-mono)}
+.caution{color:var(--muted);font-size:13px}
+.excl{display:flex;flex-direction:column;gap:2px;padding:9px 0;border-top:1px solid var(--line)}
+.excl ul{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px}
+.excl li{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;color:var(--muted);font-size:13px}
+.scroll{max-height:420px;overflow:auto}
+.gap{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}
+button.act{font:inherit;font-weight:700;border:0;background:var(--accent);color:var(--accent-ink);padding:6px 12px;border-radius:999px;cursor:pointer}
+button.ghost{font:inherit;border:1px solid var(--line);background:transparent;color:var(--ink);padding:5px 12px;border-radius:999px;cursor:pointer}
+.empty{background:var(--soft);border-radius:14px;padding:16px;color:var(--muted)}
+.switch{display:flex;gap:8px;align-items:center}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:hover{transform:translateY(-2px)}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="label">Person · Environment · Occupation</div>
+      <h1>Assistive tool matcher</h1>
+      <p class="lede">The real matching engine, running in your browser. Change a capacity, an environment fact or a risk flag on the left and watch tools get admitted or disqualified. Nothing is ever recommended on a guess: anything not confirmed counts as a failure.</p>
+    </div>
+    <div class="demo-note" id="modeNote"></div>
+  </div>
+
+  <div class="grid">
+    <div class="panel" id="controls">
+      <div class="sec">
+        <label class="label" for="profileSel">Example person</label>
+        <select id="profileSel"></select>
+      </div>
+      <div class="sec"><span class="label">Occupation: what they want to do</span><div class="pills" id="goals"></div></div>
+      <details open><summary>Person: capacity (0 unable to 4 typical)</summary><div class="sec" id="caps" style="margin-top:10px"></div></details>
+      <details open><summary>Person: risk screening</summary>
+        <div class="sec" style="margin-top:10px">
+          <div class="pills" id="risks"></div>
+          <label class="pill" style="align-self:flex-start"><input type="checkbox" id="screened"><span>Risk screening completed</span></label>
+        </div>
+      </details>
+      <details><summary>Person: tech and budget</summary>
+        <div class="sec" style="margin-top:10px"><div class="pills" id="tech"></div>
+          <label class="label" for="budget">Budget</label><select id="budget"></select></div>
+      </details>
+      <details open><summary>Environment: confirmed facts</summary><div class="sec" id="env" style="margin-top:10px"></div></details>
+    </div>
+
+    <div class="panel" id="results">
+      <div class="stats" id="stats"></div>
+      <input class="search" id="q" type="search" placeholder="Search tools, tasks, tags" aria-label="Search recommended tools">
+      <div class="pills" id="chips"></div>
+      <div class="cards" id="cards"></div>
+      <div class="switch"><button class="ghost" id="clearCat" hidden>Show all categories</button></div>
+      <div class="sec"><h2>Recommended</h2><div id="recs"></div></div>
+      <details><summary id="gapTitle">Questions that could unlock more tools</summary><div id="gaps" style="margin-top:8px"></div></details>
+      <details open><summary id="exclTitle">Disqualified</summary><div class="scroll" id="excl" style="margin-top:8px"></div></details>
+    </div>
+  </div>
+</div>
+
+<script>
+// Vocabulary validation.
+//
+// Why this exists: a misspelled tag in `forbids_any` or `contraindicated_if_any`
+// would never match anything, silently disabling a safety filter. Likewise a
+// misspelled risk flag on a person profile would silently skip a contraindication.
+// So every tag / dimension / task id is checked against the taxonomy and any
+// unknown value is a hard error, not a warning.
+
+class ValidationError extends Error {
+  constructor(errors) {
+    super(`Validation failed:\n - ${errors.join('\n - ')}`);
+    this.name = 'ValidationError';
+    this.errors = errors;
+  }
+}
+
+const SEVERITIES = ['none', 'low', 'moderate', 'high'];
+const isInt = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi;
+
+function normalizeDemand(d) {
+  return typeof d === 'number' ? { min: d, critical: false } : { min: d.min, critical: !!d.critical };
+}
+
+function validateCatalog(tools, tax) {
+  const errs = [];
+  const seen = new Set();
+  const dims = tax.dimensions, cats = tax.categories.map((c) => c.id);
+  const check = (tool, label, values, vocab) => {
+    for (const v of values ?? []) if (!(v in vocab)) errs.push(`${tool.id}: unknown ${label} "${v}"`);
+  };
+  for (const t of tools) {
+    if (seen.has(t.id)) errs.push(`duplicate tool id "${t.id}"`);
+    seen.add(t.id);
+    if (!cats.includes(t.category)) errs.push(`${t.id}: unknown category "${t.category}"`);
+    if (!t.addresses?.length) errs.push(`${t.id}: must address at least one task`);
+    check(t, 'task', t.addresses, tax.tasks);
+    check(t, 'chip tag', t.tags, tax.chips);
+    check(t, 'risk flag (contraindicated_if_any)', t.contraindicated_if_any, tax.risk_flags);
+    check(t, 'environment tag (requires_all)', t.environment?.requires_all, tax.environment_tags);
+    check(t, 'environment tag (forbids_any)', t.environment?.forbids_any, tax.environment_tags);
+    check(t, 'tech tag (daily_use)', t.tech?.daily_use, tax.tech_tags);
+    check(t, 'tech tag (setup)', t.tech?.setup, tax.tech_tags);
+    for (const [dim, raw] of Object.entries(t.demands ?? {})) {
+      if (!(dim in dims)) { errs.push(`${t.id}: unknown demand dimension "${dim}"`); continue; }
+      const d = normalizeDemand(raw);
+      if (!isInt(d.min, 1, 4)) errs.push(`${t.id}: demand ${dim}.min must be an integer 1-4`);
+    }
+    for (const s of t.supervised_if_below ?? []) {
+      if (!(s.dimension in dims)) errs.push(`${t.id}: unknown supervised_if_below dimension "${s.dimension}"`);
+      if (!isInt(s.level, 1, 4)) errs.push(`${t.id}: supervised_if_below level must be 1-4`);
+    }
+    if (!SEVERITIES.includes(t.hazards?.severity)) errs.push(`${t.id}: hazards.severity must be one of ${SEVERITIES}`);
+    if (!isInt(t.cost_band, 0, 3)) errs.push(`${t.id}: cost_band must be 0-3`);
+    if (!isInt(t.complexity, 0, 3)) errs.push(`${t.id}: complexity must be 0-3`);
+    if (!isInt(t.learning_burden, 0, 3)) errs.push(`${t.id}: learning_burden must be 0-3`);
+    // A tool that shares tags across both lists would be unsatisfiable - almost certainly a data error.
+    const both = (t.environment?.requires_all ?? []).filter((x) => (t.environment?.forbids_any ?? []).includes(x));
+    if (both.length) errs.push(`${t.id}: environment tag(s) both required and forbidden: ${both}`);
+  }
+  if (errs.length) throw new ValidationError(errs);
+}
+
+function validateProfile(profile, tax) {
+  const errs = [];
+  const { person, environment, occupation } = profile ?? {};
+  if (!person || !environment || !occupation) {
+    throw new ValidationError(['profile must contain person, environment and occupation (PEO)']);
+  }
+  for (const [dim, v] of Object.entries(person.capacities ?? {})) {
+    if (!(dim in tax.dimensions)) errs.push(`person.capacities: unknown dimension "${dim}"`);
+    else if (v !== null && v !== undefined && !isInt(v, 0, 4)) errs.push(`person.capacities.${dim} must be integer 0-4 or null`);
+  }
+  for (const f of person.risk_flags ?? []) if (!(f in tax.risk_flags)) errs.push(`person.risk_flags: unknown flag "${f}"`);
+  for (const t of person.tech_literacy ?? []) if (!(t in tax.tech_tags)) errs.push(`person.tech_literacy: unknown tag "${t}"`);
+  for (const t of environment.confirmed_tags ?? []) if (!(t in tax.environment_tags)) errs.push(`environment.confirmed_tags: unknown tag "${t}"`);
+  for (const g of occupation.goals ?? []) if (!(g in tax.tasks)) errs.push(`occupation.goals: unknown task "${g}"`);
+  const q = occupation.query ?? {};
+  if (q.category && !tax.categories.some((c) => c.id === q.category)) errs.push(`occupation.query.category: unknown "${q.category}"`);
+  for (const c of q.chips ?? []) if (!(c in tax.chips)) errs.push(`occupation.query.chips: unknown chip "${c}"`);
+  if (person.budget_band !== undefined && !isInt(person.budget_band, 0, 3)) errs.push('person.budget_band must be 0-3');
+  if (typeof person.risk_screening_complete !== 'boolean') errs.push('person.risk_screening_complete must be an explicit boolean');
+  if (errs.length) throw new ValidationError(errs);
+}
+
+// PEO matching engine: Person x Environment x Occupation -> assistive tools / workarounds.
+//
+// Pipeline:  validate -> relevance -> HARD GATES -> query filter -> rank -> browse view
+//
+// Invariants (enforced by test/invariants.test.mjs):
+//   I1  A tool is recommended only if it passes EVERY gate. Ranking, categories, chips and
+//       search can only remove candidates, never add or rescue one.
+//   I2  Fail-closed: an unassessed capacity, an unconfirmed environment/tech tag or an
+//       incomplete risk screening is treated as a failure, never as a pass.
+//   I3  The engine has no "override", "relax" or "show anyway" path.
+//
+// Purpose is compensation / adaptation. Nothing here scores or suggests rehabilitation.
+
+
+
+const ENGINE_VERSION = '0.1.0';
+
+const DEFAULTS = Object.freeze({
+  // Production must keep this true: draft (unreviewed) catalogue entries are not recommended.
+  requireClinicalReview: true,
+  // Extra capacity margin demanded on `critical` dimensions, by hazard severity.
+  safetyMargin: { none: 0, low: 0, moderate: 0, high: 1 },
+  enforceBudget: true,
+  featuredN: 3,
+});
+
+// Failure kinds:
+//   hard        - person/environment demonstrably cannot support the tool. Never recoverable by asking more.
+//   unconfirmed - we lack information. Still excluded; answering the question may make it eligible.
+//   preference  - not a safety issue (budget).
+const F = (gate, code, kind, detail, extra = {}) => ({ gate, code, kind, detail, ...extra });
+
+// ---------------------------------------------------------------- gates
+
+function evaluateGates(tool, profile, opts = DEFAULTS) {
+  const { person, environment } = profile;
+  const caps = person.capacities ?? {};
+  const envTags = new Set(environment.confirmed_tags ?? []);
+  const techTags = new Set(person.tech_literacy ?? []);
+  const riskFlags = new Set(person.risk_flags ?? []);
+  const sev = tool.hazards.severity;
+  const fails = [];
+
+  // G0 clinical review
+  if (opts.requireClinicalReview && tool.safety_review?.status !== 'clinician_reviewed') {
+    fails.push(F('G0_REVIEW', 'REVIEW_REQUIRED', 'hard', 'Catalogue entry has not been clinician-reviewed'));
+  }
+
+  // G1 risk screening must be complete before anything with a contraindication list or real hazard
+  const needsScreen = (tool.contraindicated_if_any?.length ?? 0) > 0 || sev === 'moderate' || sev === 'high';
+  if (needsScreen && !person.risk_screening_complete) {
+    fails.push(F('G1_SCREENING', 'SCREENING_INCOMPLETE', 'unconfirmed', 'Risk-flag screening not completed'));
+  }
+
+  // G2 contraindications
+  for (const flag of tool.contraindicated_if_any ?? []) {
+    if (riskFlags.has(flag)) fails.push(F('G2_CONTRAINDICATION', 'CONTRAINDICATED', 'hard', `Contraindicated by risk flag: ${flag}`, { target: flag }));
+  }
+
+  // G3 capacity demands (physical / sensory / cognitive / communication)
+  for (const [dim, raw] of Object.entries(tool.demands ?? {})) {
+    const d = normalizeDemand(raw);
+    const cap = caps[dim];
+    if (cap === null || cap === undefined) {
+      fails.push(F('G3_CAPACITY', 'CAPACITY_UNKNOWN', 'unconfirmed', `${dim} not assessed`, { target: dim }));
+      continue;
+    }
+    const need = Math.min(4, d.min + (d.critical ? opts.safetyMargin[sev] ?? 0 : 0));
+    if (cap < need) {
+      fails.push(F('G3_CAPACITY', 'CAPACITY_BELOW_DEMAND', 'hard', `${dim} ${cap} < required ${need}${need > d.min ? ` (min ${d.min} + safety margin)` : ''}`, { target: dim }));
+    }
+  }
+
+  // G4 graded supervision: below the level, a person must be present during use
+  let supervisedUse = false;
+  for (const s of tool.supervised_if_below ?? []) {
+    const cap = caps[s.dimension];
+    if (cap === null || cap === undefined) {
+      fails.push(F('G4_SUPERVISION', 'CAPACITY_UNKNOWN', 'unconfirmed', `${s.dimension} not assessed (needed to decide supervision)`, { target: s.dimension }));
+    } else if (cap < s.level) {
+      supervisedUse = true;
+      if (!envTags.has('caregiver_present_during_use')) {
+        fails.push(F('G4_SUPERVISION', 'SUPERVISION_UNAVAILABLE', 'hard', `${s.dimension} ${cap} < ${s.level}: someone must be present during use`, { target: 'caregiver_present_during_use' }));
+      }
+    }
+  }
+
+  // G5 environmental gating: requirements must be EXPLICITLY confirmed; hazards must be absent
+  for (const tag of tool.environment?.requires_all ?? []) {
+    if (!envTags.has(tag)) fails.push(F('G5_ENVIRONMENT', 'ENV_REQUIREMENT_UNCONFIRMED', 'unconfirmed', `Environment does not confirm: ${tag}`, { target: tag }));
+  }
+  for (const tag of tool.environment?.forbids_any ?? []) {
+    if (envTags.has(tag)) fails.push(F('G5_ENVIRONMENT', 'ENV_FORBIDDEN_PRESENT', 'hard', `Environment has blocking condition: ${tag}`, { target: tag }));
+  }
+
+  // G6 setup support + tech literacy. Setup may be done by a helper; daily use may not.
+  const helper = envTags.has('helper_available_for_setup');
+  if (tool.setup_requires_helper && !helper) {
+    fails.push(F('G6_TECH', 'SETUP_HELPER_UNAVAILABLE', 'unconfirmed', 'Needs installation/setup by another person', { target: 'helper_available_for_setup' }));
+  }
+  for (const tag of tool.tech?.setup ?? []) {
+    if (!techTags.has(tag) && !helper) fails.push(F('G6_TECH', 'TECH_UNCONFIRMED', 'unconfirmed', `Setup needs "${tag}" or a setup helper`, { target: tag }));
+  }
+  for (const tag of tool.tech?.daily_use ?? []) {
+    if (!techTags.has(tag)) fails.push(F('G6_TECH', 'TECH_UNCONFIRMED', 'unconfirmed', `Daily use needs "${tag}"`, { target: tag }));
+  }
+
+  // G7 budget (preference, not safety)
+  if (opts.enforceBudget && person.budget_band !== undefined && tool.cost_band > person.budget_band) {
+    fails.push(F('G7_BUDGET', 'BUDGET_EXCEEDED', 'preference', `Cost band ${tool.cost_band} > budget band ${person.budget_band}`));
+  }
+
+  return { failures: fails, supervisedUse };
+}
+
+// ---------------------------------------------------------------- ranking (survivors only)
+
+const EVIDENCE = { unassessed: 0.2, manufacturer_claim_only: 0.3, expert_consensus: 0.6, clinical_guideline: 0.85, controlled_study: 1.0 };
+const HAZARD = { none: 1, low: 0.9, moderate: 0.7, high: 0.5 };
+const WEIGHTS = Object.freeze({ headroom: 0.25, coverage: 0.25, simplicity: 0.20, hazard: 0.15, evidence: 0.10, cost: 0.05 });
+
+function headroom(tool, caps) {
+  const ds = Object.entries(tool.demands ?? {});
+  if (!ds.length) return 1;
+  const parts = ds.map(([dim, raw]) => {
+    const { min } = normalizeDemand(raw);
+    return min >= 4 ? 1 : Math.max(0, Math.min(1, (caps[dim] - min) / (4 - min)));
+  });
+  return parts.reduce((a, b) => a + b, 0) / parts.length;
+}
+
+function simplicity(tool, caps) {
+  // Least-complex-solution-first (standard OT practice): less complex, less setup, lighter learning.
+  const cx = 1 - tool.complexity / 3;
+  const nl = caps.new_learning;
+  // Unknown learning capacity only affects ranking (safety is decided by gates), so be conservative.
+  const learnFit = tool.learning_burden === 0 ? 1 : nl == null ? 0.4 : Math.max(0, Math.min(1, (nl - tool.learning_burden + 2) / 3));
+  return 0.5 * cx + 0.5 * learnFit;
+}
+
+function scoreTool(tool, profile, goals) {
+  const caps = profile.person.capacities ?? {};
+  const covered = goals.length ? tool.addresses.filter((a) => goals.includes(a)).length / goals.length : 1;
+  const parts = {
+    headroom: headroom(tool, caps),
+    coverage: covered,
+    simplicity: simplicity(tool, caps),
+    hazard: HAZARD[tool.hazards.severity],
+    evidence: EVIDENCE[tool.evidence] ?? 0.2,
+    cost: 1 - tool.cost_band / 3,
+  };
+  const w = { ...WEIGHTS };
+  if (profile.person.preferences?.prefer_low_tech) { w.simplicity += 0.10; w.headroom -= 0.10; }
+  const score = Object.entries(w).reduce((s, [k, wt]) => s + wt * parts[k], 0);
+  return { score: Math.round(score * 1000) / 1000, breakdown: parts };
+}
+
+// ---------------------------------------------------------------- main
+
+function recommend({ profile, tools, taxonomy, options = {} }) {
+  const opts = { ...DEFAULTS, ...options, safetyMargin: { ...DEFAULTS.safetyMargin, ...(options.safetyMargin ?? {}) } };
+  validateCatalog(tools, taxonomy);
+  validateProfile(profile, taxonomy);
+
+  const goals = profile.occupation.goals ?? [];
+  const query = profile.occupation.query ?? {};
+  const relevant = tools.filter((t) => !goals.length || t.addresses.some((a) => goals.includes(a)));
+
+  const eligible = [], excluded = [];
+  for (const tool of relevant) {
+    const { failures, supervisedUse } = evaluateGates(tool, profile, opts);
+    if (failures.length === 0) eligible.push({ tool, supervisedUse });
+    else excluded.push({ tool_id: tool.id, name: tool.name, failures, could_unlock: failures.every((f) => f.kind === 'unconfirmed') });
+  }
+
+  // Query (category / chips / search) runs strictly AFTER gating: it can only narrow (I1).
+  const text = (query.text ?? '').trim().toLowerCase();
+  const inCategoryText = eligible.filter(({ tool }) => {
+    if (query.category && tool.category !== query.category) return false;
+    if (text) {
+      const hay = [tool.name, tool.summary, ...tool.tags, ...tool.addresses.map((a) => taxonomy.tasks[a].label)].join(' ').toLowerCase();
+      if (!hay.includes(text)) return false;
+    }
+    return true;
+  });
+  const chipsWanted = query.chips ?? [];
+  const shown = inCategoryText.filter(({ tool }) => chipsWanted.every((c) => tool.tags.includes(c)));
+
+  const rank = (list) => list
+    .map(({ tool, supervisedUse }) => {
+      const s = scoreTool(tool, profile, goals);
+      return {
+        tool_id: tool.id, name: tool.name, kind: tool.kind, category: tool.category,
+        addresses: tool.addresses.filter((a) => !goals.length || goals.includes(a)),
+        score: s.score, breakdown: s.breakdown, summary: tool.summary,
+        cautions: [
+          ...(tool.hazards.notes ? [tool.hazards.notes] : []),
+          ...(supervisedUse ? ['Use only with another person present.'] : []),
+          ...(tool.setup_requires_helper ? ['Needs installation/setup by another person.'] : []),
+        ],
+        hazard_severity: tool.hazards.severity,
+        review_status: tool.safety_review?.status ?? 'draft',
+      };
+    })
+    .sort((a, b) => b.score - a.score || a.tool_id.localeCompare(b.tool_id));
+
+  const recommendations = rank(shown);
+
+  // Browse view (the category-card / chip / search UX). Built ONLY from survivors, so no card or chip
+  // can lead to a disqualified tool; empty categories are omitted rather than shown "for browsing".
+  const rankedCatText = rank(inCategoryText);
+  const byCat = new Map();
+  for (const r of rank(eligible.filter((e) => !query.category || e.tool.category === query.category))) {
+    if (!byCat.has(r.category)) byCat.set(r.category, []);
+    byCat.get(r.category).push(r.tool_id);
+  }
+  const chipCounts = {};
+  for (const r of rankedCatText) for (const c of tools.find((t) => t.id === r.tool_id).tags) chipCounts[c] = (chipCounts[c] ?? 0) + 1;
+  const browse = {
+    featured: recommendations.slice(0, opts.featuredN).map((r) => r.tool_id),
+    categories: taxonomy.categories
+      .filter((c) => byCat.has(c.id))
+      .sort((a, b) => a.sort - b.sort)
+      .map((c) => ({ id: c.id, label: c.label, color: c.color, count: byCat.get(c.id).length, tool_ids: byCat.get(c.id) })),
+    chips: Object.entries(chipCounts).map(([id, count]) => ({ id, label: taxonomy.chips[id], count })).sort((a, b) => b.count - a.count || a.id.localeCompare(b.id)),
+  };
+
+  return {
+    recommendations,
+    excluded,
+    assessment_gaps: assessmentGaps(excluded),
+    browse,
+    meta: {
+      engine_version: ENGINE_VERSION, taxonomy_version: taxonomy.version,
+      options: opts, goals, evaluated: relevant.length, eligible: eligible.length, excluded: excluded.length,
+      notice: 'Decision support only. Not a substitute for assessment by a qualified occupational therapist.',
+    },
+  };
+}
+
+// Which unanswered questions would unlock the most tools? Only counts tools with NO hard failure,
+// so we never ask a question whose answer cannot change the outcome.
+function assessmentGaps(excluded) {
+  const gaps = new Map();
+  for (const e of excluded) {
+    for (const f of e.failures) {
+      if (f.kind !== 'unconfirmed') continue;
+      const key = `${f.code}:${f.target ?? ''}`;
+      const g = gaps.get(key) ?? { code: f.code, target: f.target ?? null, blocks: 0, could_unlock: 0 };
+      g.blocks += 1;
+      if (e.could_unlock) g.could_unlock += 1;
+      gaps.set(key, g);
+    }
+  }
+  return [...gaps.values()].sort((a, b) => b.could_unlock - a.could_unlock || b.blocks - a.blocks || (a.code + a.target).localeCompare(b.code + b.target));
+}
+
+const DATA = {"taxonomy":{"version":"0.1.0","scale":{"note":"Capacity = what the person can do RELIABLY and SAFELY, unaided, on a bad day - not best day. Ordinal, not interval. Null/absent = NOT ASSESSED and is treated as failing any demand (fail-closed).","levels":{"0":"Unable","1":"Severely limited","2":"Moderately limited","3":"Mildly limited","4":"Typical / unimpaired"}},"dimensions":{"grip_strength":{"group":"physical","label":"Grip strength"},"fine_motor":{"group":"physical","label":"Fine motor dexterity"},"bilateral_hand_use":{"group":"physical","label":"Coordinated use of both hands"},"reach_range":{"group":"physical","label":"Reach range"},"balance":{"group":"physical","label":"Standing / sitting balance"},"transfer_ability":{"group":"physical","label":"Sit-stand and surface-to-surface transfers"},"endurance":{"group":"physical","label":"Activity endurance"},"tremor_control":{"group":"physical","label":"Steadiness (4 = no tremor)"},"vision":{"group":"sensory","label":"Functional vision"},"hearing":{"group":"sensory","label":"Functional hearing"},"tactile_sensation":{"group":"sensory","label":"Protective touch / heat / pain sensation"},"working_memory":{"group":"cognitive","label":"Working memory"},"sequencing":{"group":"cognitive","label":"Multi-step sequencing"},"attention":{"group":"cognitive","label":"Sustained attention"},"initiation":{"group":"cognitive","label":"Task initiation"},"problem_solving":{"group":"cognitive","label":"Problem solving when something goes wrong"},"safety_judgment":{"group":"cognitive","label":"Hazard recognition and safety judgment"},"new_learning":{"group":"cognitive","label":"Learning a new routine or device"},"speech_clarity":{"group":"communication","label":"Speech clarity"},"literacy":{"group":"communication","label":"Reading / writing"}},"risk_flags":{"uncontrolled_seizures":"Seizures not controlled","high_fall_risk":"High fall risk","dizziness_or_syncope":"Dizziness or fainting episodes","reduced_thermal_sensation":"Reduced heat/cold sensation (burn risk)","skin_fragility":"Fragile skin","anticoagulant_use":"Anticoagulant use (bleeding risk)","impaired_swallow":"Impaired swallow","wandering_risk":"Wandering risk","poor_impulse_control":"Poor impulse control","hypersensitivity_to_noise":"Noise hypersensitivity","cognitive_stove_safety_concern":"Documented unsafe stove use"},"environment_tags":{"kitchen_counter_workspace":{"domain":"kitchen","label":"Stable, clear counter workspace"},"power_outlet_near_counter":{"domain":"kitchen","label":"Outlet reachable at counter"},"electric_hob":{"domain":"kitchen","label":"Electric / induction hob"},"gas_hob":{"domain":"kitchen","label":"Gas hob"},"microwave_available":{"domain":"kitchen","label":"Microwave available"},"shower_over_tub":{"domain":"bathroom","label":"Shower over tub"},"walk_in_shower":{"domain":"bathroom","label":"Walk-in / curbless shower"},"wall_blocking_present":{"domain":"bathroom","label":"Wall studs / blocking where support is needed"},"structural_modification_permitted":{"domain":"home","label":"Owner or landlord permits drilling / hard-wiring"},"step_free_entry":{"domain":"home","label":"Step-free route in and around home"},"doorways_32in_min":{"domain":"home","label":"All used doorways >= 32in / 81cm"},"stairs_in_daily_route":{"domain":"home","label":"Stairs on the daily route"},"loose_rugs_present":{"domain":"home","label":"Loose rugs / cords on floors"},"firm_chair_available":{"domain":"home","label":"Firm chair with arms available"},"landline_jack":{"domain":"home","label":"Working landline jack"},"power_outlet_near_seating":{"domain":"home","label":"Outlet near main seating"},"wifi_home":{"domain":"connectivity","label":"Reliable home wifi"},"smart_speaker_present":{"domain":"connectivity","label":"Smart speaker already installed"},"helper_available_for_setup":{"domain":"support","label":"Someone can install / configure / refill"},"caregiver_present_during_use":{"domain":"support","label":"Someone present when tool is used"}},"tech_tags":{"smartphone_owned":"Owns a smartphone","touchscreen_basic":"Operates a touchscreen independently","app_install":"Installs and configures apps independently","voice_commands":"Uses voice commands reliably","wifi_setup_independent":"Connects devices to wifi independently"},"categories":[{"id":"eating_kitchen","label":"Kitchen & meals","color":"#F28C4B","sort":1},{"id":"self_care","label":"Dressing & grooming","color":"#C9A6D8","sort":2},{"id":"bathing_toileting","label":"Bathing & toileting","color":"#5B8FD4","sort":3},{"id":"mobility_transfers","label":"Moving around","color":"#4A5068","sort":4},{"id":"medication_health","label":"Medication","color":"#6CC7A2","sort":5},{"id":"memory_planning","label":"Memory & planning","color":"#4FB8B0","sort":6},{"id":"communication_tech","label":"Phone & communication","color":"#F6C56B","sort":7}],"chips":{"one_handed":"One-handed","low_tech":"Low-tech","no_install":"No installation","hands_free":"Hands-free","prompts_reminders":"Reminders"},"tasks":{"cut_food":{"category":"eating_kitchen","label":"Cut food"},"open_jars":{"category":"eating_kitchen","label":"Open jars and containers"},"cook_hot_meal":{"category":"eating_kitchen","label":"Prepare a hot meal"},"button_clothing":{"category":"self_care","label":"Button / zip clothing"},"put_on_socks":{"category":"self_care","label":"Put on socks"},"pick_up_items_floor":{"category":"self_care","label":"Pick up items from the floor"},"shower_transfer":{"category":"bathing_toileting","label":"Get in and out of shower / tub"},"bathe_seated":{"category":"bathing_toileting","label":"Wash while seated"},"walk_household_distance":{"category":"mobility_transfers","label":"Walk between rooms"},"take_medications":{"category":"medication_health","label":"Take the right medication on time"},"remember_appointments":{"category":"memory_planning","label":"Remember appointments"},"plan_daily_routine":{"category":"memory_planning","label":"Keep track of the daily routine"},"make_phone_call":{"category":"communication_tech","label":"Make a phone call"},"send_messages":{"category":"communication_tech","label":"Send messages"}},"budget_bands":{"0":"Free","1":"Under ~$25","2":"Under ~$100","3":"$100+"}},"tools":[{"id":"rocker_knife","name":"One-handed rocker knife","kind":"device","category":"eating_kitchen","addresses":["cut_food"],"summary":"Curved blade cuts with a rocking motion; one hand, no pinch grip.","tags":["one_handed","low_tech","no_install"],"demands":{"grip_strength":2,"tremor_control":{"min":2,"critical":true},"tactile_sensation":2,"attention":2,"safety_judgment":{"min":3,"critical":true}},"hazards":{"severity":"moderate","notes":"Exposed blade. Use on a non-slip mat."},"contraindicated_if_any":["poor_impulse_control","anticoagulant_use"],"supervised_if_below":[],"environment":{"requires_all":["kitchen_counter_workspace"],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":false,"cost_band":1,"complexity":1,"learning_burden":1,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"wall_jar_opener","name":"Under-cabinet jar opener","kind":"device","category":"eating_kitchen","addresses":["open_jars"],"summary":"Fixed gripping jaws; jar is turned against the fixture with one hand.","tags":["one_handed","low_tech"],"demands":{"grip_strength":1},"hazards":{"severity":"low","notes":"Drilled fixture; check screw length before mounting."},"contraindicated_if_any":[],"supervised_if_below":[],"environment":{"requires_all":["structural_modification_permitted","kitchen_counter_workspace"],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":true,"cost_band":1,"complexity":1,"learning_burden":1,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"electric_jar_opener","name":"Battery / mains jar opener","kind":"device","category":"eating_kitchen","addresses":["open_jars"],"summary":"Clamps the lid and turns it at the push of a button.","tags":["one_handed","no_install"],"demands":{"grip_strength":1,"fine_motor":1,"attention":2},"hazards":{"severity":"low","notes":"Mains-powered; keep cord clear of walkways."},"contraindicated_if_any":[],"supervised_if_below":[],"environment":{"requires_all":["kitchen_counter_workspace","power_outlet_near_counter"],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":false,"cost_band":2,"complexity":2,"learning_burden":1,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"stove_auto_shutoff","name":"Stove auto shut-off (heat-sensing)","kind":"device","category":"eating_kitchen","addresses":["cook_hot_meal"],"summary":"Cuts hob power when unattended or overheating; audible warning first.","tags":[],"demands":{"hearing":{"min":2,"critical":true}},"hazards":{"severity":"moderate","notes":"Reduces but does not eliminate fire risk. Not a substitute for supervision where a clinician advises it."},"contraindicated_if_any":[],"supervised_if_below":[],"environment":{"requires_all":["electric_hob","structural_modification_permitted"],"forbids_any":["gas_hob"]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":true,"cost_band":3,"complexity":1,"learning_burden":0,"evidence":"manufacturer_claim_only","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"microwave_meal_routine","name":"Microwave pre-portioned meal routine","kind":"workaround","category":"eating_kitchen","addresses":["cook_hot_meal"],"summary":"Pre-portioned labelled meals, one-step microwave routine, no hob use.","tags":["low_tech","no_install"],"demands":{"sequencing":2,"vision":2,"safety_judgment":{"min":2,"critical":true},"tactile_sensation":{"min":2,"critical":true}},"hazards":{"severity":"moderate","notes":"Hot containers and steam. Use a tray with handles."},"contraindicated_if_any":["reduced_thermal_sensation"],"supervised_if_below":[],"environment":{"requires_all":["microwave_available"],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":false,"cost_band":1,"complexity":0,"learning_burden":1,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"button_hook_zip_pull","name":"Button hook and zipper pull","kind":"device","category":"self_care","addresses":["button_clothing"],"summary":"Loop tool draws buttons through holes; ring pull for zippers. One-handed.","tags":["one_handed","low_tech","no_install"],"demands":{"fine_motor":2,"grip_strength":1,"sequencing":2,"vision":1},"hazards":{"severity":"low","notes":""},"contraindicated_if_any":[],"supervised_if_below":[],"environment":{"requires_all":[],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":false,"cost_band":1,"complexity":1,"learning_burden":1,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"sock_aid","name":"Sock aid","kind":"device","category":"self_care","addresses":["put_on_socks"],"summary":"Sock is loaded on a flexible sleeve and pulled on from a seated position.","tags":["low_tech","no_install"],"demands":{"grip_strength":2,"balance":{"min":2,"critical":true},"sequencing":2,"new_learning":2},"hazards":{"severity":"low","notes":"Loss of seated balance while leaning forward."},"contraindicated_if_any":["dizziness_or_syncope"],"supervised_if_below":[],"environment":{"requires_all":["firm_chair_available"],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":false,"cost_band":1,"complexity":1,"learning_burden":2,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"reacher_grabber","name":"Reacher / grabber","kind":"device","category":"self_care","addresses":["pick_up_items_floor"],"summary":"Trigger-operated long-handled tongs for retrieving floor-level items.","tags":["low_tech","no_install"],"demands":{"grip_strength":2,"balance":{"min":3,"critical":true},"safety_judgment":2},"hazards":{"severity":"moderate","notes":"Forward reach while standing raises fall risk."},"contraindicated_if_any":["high_fall_risk","dizziness_or_syncope"],"supervised_if_below":[],"environment":{"requires_all":[],"forbids_any":["loose_rugs_present"]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":false,"cost_band":1,"complexity":1,"learning_burden":1,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"installed_grab_bar","name":"Wall-anchored grab bar","kind":"device","category":"bathing_toileting","addresses":["shower_transfer"],"summary":"Fixed bar at the tub / shower entry for support during the step-over.","tags":[],"demands":{"grip_strength":{"min":2,"critical":true},"balance":1,"safety_judgment":2},"hazards":{"severity":"high","notes":"Must be anchored into blocking by a qualified installer. Anchor failure causes a fall."},"contraindicated_if_any":[],"supervised_if_below":[],"environment":{"requires_all":["structural_modification_permitted","wall_blocking_present"],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":true,"cost_band":2,"complexity":0,"learning_burden":0,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"shower_chair","name":"Shower chair with back","kind":"device","category":"bathing_toileting","addresses":["bathe_seated"],"summary":"Seat with backrest for washing seated in a walk-in shower.","tags":["low_tech","no_install"],"demands":{"balance":{"min":2,"critical":true},"transfer_ability":{"min":2,"critical":true},"safety_judgment":2},"hazards":{"severity":"moderate","notes":"Wet surface transfer. Rubber feet must be intact."},"contraindicated_if_any":[],"supervised_if_below":[],"environment":{"requires_all":["walk_in_shower"],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":false,"cost_band":2,"complexity":0,"learning_burden":1,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"tub_transfer_bench","name":"Tub transfer bench","kind":"device","category":"bathing_toileting","addresses":["shower_transfer","bathe_seated"],"summary":"Bench spanning the tub wall; sit outside, slide across, wash seated.","tags":["low_tech"],"demands":{"balance":{"min":2,"critical":true},"transfer_ability":{"min":2,"critical":true},"bilateral_hand_use":2,"safety_judgment":2},"hazards":{"severity":"high","notes":"Wet surface transfer over the tub edge."},"contraindicated_if_any":[],"supervised_if_below":[{"dimension":"safety_judgment","level":3}],"environment":{"requires_all":["shower_over_tub"],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":true,"cost_band":2,"complexity":1,"learning_burden":2,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"rollator","name":"Rollator (4-wheel walker)","kind":"device","category":"mobility_transfers","addresses":["walk_household_distance"],"summary":"Wheeled walker with brakes and seat for household mobility.","tags":["low_tech","no_install"],"demands":{"grip_strength":2,"balance":{"min":1,"critical":true},"endurance":2,"vision":2,"safety_judgment":2},"hazards":{"severity":"high","notes":"Tipping on thresholds, brake misuse, falls."},"contraindicated_if_any":["uncontrolled_seizures"],"supervised_if_below":[{"dimension":"safety_judgment","level":3}],"environment":{"requires_all":["step_free_entry","doorways_32in_min"],"forbids_any":["stairs_in_daily_route","loose_rugs_present"]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":false,"cost_band":2,"complexity":1,"learning_burden":2,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"pill_organizer_alarm","name":"Weekly pill organizer with alarm","kind":"device","category":"medication_health","addresses":["take_medications"],"summary":"Compartments by day and time with an audible timer; easy-open lids.","tags":["low_tech","no_install","prompts_reminders"],"demands":{"fine_motor":2,"vision":{"min":2,"critical":true},"sequencing":{"min":2,"critical":true},"working_memory":1,"safety_judgment":{"min":2,"critical":true}},"hazards":{"severity":"high","notes":"Dosing errors can cause harm. Weekly fill should be checked by a helper or pharmacist."},"contraindicated_if_any":[],"supervised_if_below":[],"environment":{"requires_all":[],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":false,"cost_band":1,"complexity":1,"learning_burden":1,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"locked_pill_dispenser","name":"Connected locked pill dispenser","kind":"device","category":"medication_health","addresses":["take_medications"],"summary":"Releases only the due dose, alerts by sound and app, notifies a helper if missed.","tags":["hands_free","prompts_reminders"],"demands":{"vision":2,"hearing":{"min":2,"critical":true},"new_learning":2,"initiation":1},"hazards":{"severity":"high","notes":"Device failure or lockout could prevent a dose. Needs a fallback plan."},"contraindicated_if_any":[],"supervised_if_below":[],"environment":{"requires_all":["wifi_home","power_outlet_near_counter"],"forbids_any":[]},"tech":{"daily_use":[],"setup":["smartphone_owned","app_install","wifi_setup_independent"]},"setup_requires_helper":false,"cost_band":3,"complexity":3,"learning_burden":2,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"smart_speaker_reminders","name":"Smart-speaker spoken reminders","kind":"digital","category":"memory_planning","addresses":["remember_appointments","plan_daily_routine"],"summary":"Spoken time-based reminders set by voice or by a helper's app.","tags":["hands_free","prompts_reminders","no_install"],"demands":{"hearing":2,"speech_clarity":2,"working_memory":1},"hazards":{"severity":"none","notes":""},"contraindicated_if_any":["hypersensitivity_to_noise"],"supervised_if_below":[],"environment":{"requires_all":["wifi_home","smart_speaker_present"],"forbids_any":[]},"tech":{"daily_use":["voice_commands"],"setup":["smartphone_owned","app_install","wifi_setup_independent"]},"setup_requires_helper":false,"cost_band":1,"complexity":2,"learning_burden":2,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"paper_wall_calendar","name":"Wall calendar + daily routine whiteboard","kind":"workaround","category":"memory_planning","addresses":["remember_appointments","plan_daily_routine"],"summary":"Large-format calendar and a whiteboard at a fixed spot, checked at a fixed time.","tags":["low_tech","no_install","prompts_reminders"],"demands":{"vision":2,"literacy":2,"initiation":2},"hazards":{"severity":"none","notes":""},"contraindicated_if_any":[],"supervised_if_below":[],"environment":{"requires_all":[],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":false,"cost_band":0,"complexity":0,"learning_burden":0,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"amplified_big_button_phone","name":"Amplified big-button landline phone","kind":"device","category":"communication_tech","addresses":["make_phone_call"],"summary":"Large keys, adjustable volume, photo speed-dial.","tags":["low_tech","no_install"],"demands":{"hearing":1,"vision":1,"fine_motor":1,"working_memory":1},"hazards":{"severity":"none","notes":""},"contraindicated_if_any":[],"supervised_if_below":[],"environment":{"requires_all":["landline_jack","power_outlet_near_seating"],"forbids_any":[]},"tech":{"daily_use":[],"setup":[]},"setup_requires_helper":false,"cost_band":2,"complexity":0,"learning_burden":0,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}},{"id":"phone_accessibility_setup","name":"Smartphone large-text + voice-dial setup","kind":"digital","category":"communication_tech","addresses":["make_phone_call","send_messages"],"summary":"Enlarged text, favourites screen, voice dialling and dictation.","tags":["hands_free"],"demands":{"working_memory":2,"attention":2,"new_learning":2},"hazards":{"severity":"low","notes":"Scam calls and links; disable unknown-caller answering."},"contraindicated_if_any":[],"supervised_if_below":[],"environment":{"requires_all":[],"forbids_any":[]},"tech":{"daily_use":["smartphone_owned","touchscreen_basic"],"setup":["smartphone_owned"]},"setup_requires_helper":false,"cost_band":0,"complexity":2,"learning_burden":2,"evidence":"expert_consensus","safety_review":{"status":"draft","reviewed_by":null,"reviewed_on":null}}],"profiles":{"post_stroke_left_hemiparesis":{"person":{"label":"Post-stroke, left-sided weakness, reduced sensation","capacities":{"grip_strength":2,"fine_motor":2,"bilateral_hand_use":1,"reach_range":4,"balance":2,"transfer_ability":3,"endurance":2,"tremor_control":3,"vision":3,"hearing":4,"tactile_sensation":2,"working_memory":3,"sequencing":3,"attention":3,"initiation":4,"problem_solving":4,"safety_judgment":3,"new_learning":3,"speech_clarity":4,"literacy":4},"risk_flags":["reduced_thermal_sensation","high_fall_risk"],"risk_screening_complete":true,"tech_literacy":["smartphone_owned","touchscreen_basic"],"budget_band":2,"preferences":{"prefer_low_tech":true}},"environment":{"confirmed_tags":["kitchen_counter_workspace","microwave_available","power_outlet_near_counter","gas_hob","shower_over_tub","step_free_entry","firm_chair_available","wifi_home","helper_available_for_setup"]},"occupation":{"goals":["cut_food","open_jars","shower_transfer","take_medications","put_on_socks","pick_up_items_floor"]}},"early_cognitive_impairment_lives_alone":{"person":{"label":"Early cognitive impairment, physically well, lives alone","capacities":{"grip_strength":4,"fine_motor":4,"bilateral_hand_use":4,"reach_range":4,"balance":4,"transfer_ability":4,"endurance":4,"tremor_control":4,"vision":4,"hearing":4,"tactile_sensation":4,"working_memory":1,"sequencing":2,"attention":2,"initiation":2,"problem_solving":2,"safety_judgment":2,"new_learning":1,"speech_clarity":4,"literacy":4},"risk_flags":["cognitive_stove_safety_concern","wandering_risk"],"risk_screening_complete":true,"tech_literacy":["smartphone_owned"],"budget_band":3},"environment":{"confirmed_tags":["electric_hob","structural_modification_permitted","helper_available_for_setup","wifi_home","smart_speaker_present","kitchen_counter_workspace","microwave_available","power_outlet_near_counter","landline_jack","power_outlet_near_seating"]},"occupation":{"goals":["cook_hot_meal","take_medications","remember_appointments","plan_daily_routine","make_phone_call"]}},"incomplete_intake":{"person":{"label":"Intake in progress: most capacities not yet assessed, risk screening not done","capacities":{"grip_strength":3,"vision":4,"hearing":4,"balance":null,"safety_judgment":null,"new_learning":3,"working_memory":3,"sequencing":3,"initiation":3,"literacy":4,"fine_motor":3,"attention":3},"risk_flags":[],"risk_screening_complete":false,"tech_literacy":[],"budget_band":2},"environment":{"confirmed_tags":["kitchen_counter_workspace","shower_over_tub"]},"occupation":{"goals":["cut_food","shower_transfer","remember_appointments","take_medications"]}}}};
+</script>
+<script>
+const T = DATA.taxonomy, TOOLS = DATA.tools, PROFILES = DATA.profiles;
+const $ = (id) => document.getElementById(id);
+const clone = (x) => JSON.parse(JSON.stringify(x));
+const el = (tag, attrs = {}, ...kids) => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v); } kids.forEach((c) => n.append(c)); return n; };
+const S = { key: 'post_stroke_left_hemiparesis', profile: null, review: false, cat: null, chips: [], text: '' };
+const dark = (hex) => { const n = parseInt(hex.slice(1), 16); const l = 0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255); return l < 140; };
+const taskLabel = (id) => T.tasks[id].label;
+
+function run(query) {
+  const p = clone(S.profile); p.occupation.query = query;
+  return recommend({ profile: p, tools: TOOLS, taxonomy: T, options: { requireClinicalReview: S.review } });
+}
+
+// ---------- controls (built once, then synced from state)
+function pillCheckbox(id, text, cls, onchange) {
+  const input = el('input', { type: 'checkbox', id, onchange });
+  return el('label', { class: 'pill ' + cls }, input, el('span', { text }));
+}
+function buildControls() {
+  const sel = $('profileSel');
+  for (const [k, p] of Object.entries(PROFILES)) sel.append(el('option', { value: k, text: p.person.label }));
+  sel.append(el('option', { value: '__blank', text: 'Blank profile (nothing assessed)' }));
+  sel.addEventListener('change', () => loadProfile(sel.value));
+
+  for (const [id, t] of Object.entries(T.tasks)) $('goals').append(pillCheckbox('g_' + id, t.label, '', (e) => {
+    const g = S.profile.occupation.goals; const i = g.indexOf(id);
+    if (e.target.checked && i < 0) g.push(id); if (!e.target.checked && i >= 0) g.splice(i, 1); update();
+  }));
+
+  const groups = {};
+  for (const [d, m] of Object.entries(T.dimensions)) (groups[m.group] ??= []).push([d, m.label]);
+  for (const [grp, dims] of Object.entries(groups)) {
+    const box = el('div', { class: 'caps' });
+    box.append(el('div', { class: 'label', text: grp }), el('span'));
+    for (const [d, label] of dims) {
+      const s = el('select', { id: 'c_' + d, 'aria-label': label });
+      s.append(el('option', { value: '', text: 'not assessed' })); for (let i = 0; i <= 4; i++) s.append(el('option', { value: String(i), text: String(i) }));
+      s.addEventListener('change', () => { S.profile.person.capacities[d] = s.value === '' ? null : Number(s.value); update(); });
+      box.append(el('label', { for: 'c_' + d, text: label }), s);
+    }
+    $('caps').append(box);
+  }
+  for (const [f, label] of Object.entries(T.risk_flags)) $('risks').append(pillCheckbox('r_' + f, label, 'risk', (e) => toggle(S.profile.person.risk_flags, f, e.target.checked)));
+  $('screened').addEventListener('change', (e) => { S.profile.person.risk_screening_complete = e.target.checked; update(); });
+  for (const [t, label] of Object.entries(T.tech_tags)) $('tech').append(pillCheckbox('t_' + t, label, '', (e) => toggle(S.profile.person.tech_literacy, t, e.target.checked)));
+  const b = $('budget'); for (const [k, v] of Object.entries(T.budget_bands)) b.append(el('option', { value: k, text: v }));
+  b.addEventListener('change', () => { S.profile.person.budget_band = Number(b.value); update(); });
+
+  const domains = {};
+  for (const [t, m] of Object.entries(T.environment_tags)) (domains[m.domain] ??= []).push([t, m.label]);
+  const forbidden = new Set(TOOLS.flatMap((t) => t.environment.forbids_any));
+  for (const [dom, tags] of Object.entries(domains)) {
+    $('env').append(el('div', { class: 'label', text: dom }));
+    const box = el('div', { class: 'pills' });
+    for (const [t, label] of tags) box.append(pillCheckbox('e_' + t, label, 'env' + (forbidden.has(t) ? ' forb' : ''), (e) => toggle(S.profile.environment.confirmed_tags, t, e.target.checked)));
+    $('env').append(box);
+  }
+  $('env').append(el('p', { class: 'caution', text: 'Red tags are blockers for some tools (gas hob, loose rugs, stairs). Unchecked means not confirmed, which the engine treats as not supported.' }));
+}
+function toggle(arr, v, on) { const i = arr.indexOf(v); if (on && i < 0) arr.push(v); if (!on && i >= 0) arr.splice(i, 1); update(); }
+function syncControls() {
+  const p = S.profile;
+  $('profileSel').value = S.key;
+  for (const id of Object.keys(T.tasks)) $('g_' + id).checked = p.occupation.goals.includes(id);
+  for (const d of Object.keys(T.dimensions)) { const v = p.person.capacities[d]; $('c_' + d).value = v === null || v === undefined ? '' : String(v); }
+  for (const f of Object.keys(T.risk_flags)) $('r_' + f).checked = p.person.risk_flags.includes(f);
+  $('screened').checked = !!p.person.risk_screening_complete;
+  for (const t of Object.keys(T.tech_tags)) $('t_' + t).checked = p.person.tech_literacy.includes(t);
+  $('budget').value = String(p.person.budget_band ?? 3);
+  for (const t of Object.keys(T.environment_tags)) $('e_' + t).checked = p.environment.confirmed_tags.includes(t);
+}
+function loadProfile(k) {
+  S.key = k; S.cat = null; S.chips = [];
+  S.profile = k === '__blank'
+    ? { person: { label: 'Blank', capacities: {}, risk_flags: [], risk_screening_complete: false, tech_literacy: [], budget_band: 3 }, environment: { confirmed_tags: [] }, occupation: { goals: ['cut_food', 'take_medications', 'remember_appointments'] } }
+    : clone(PROFILES[k]);
+  syncControls(); renderResults();
+}
+function update() { renderResults(); }
+
+// ---------- results
+function renderResults() {
+  $('modeNote').textContent = S.review
+    ? 'Production mode: only clinician-reviewed catalogue entries can be recommended. All 18 seed entries are drafts, so nothing appears.'
+    : 'Demo mode: unreviewed draft catalogue. Thresholds are illustrative, not clinical guidance.';
+  const reviewBtn = el('button', { class: 'ghost', style: 'margin-left:8px', onclick: () => { S.review = !S.review; renderResults(); }, text: S.review ? 'Switch to demo mode' : 'Try production mode' });
+  $('modeNote').append(document.createElement('br'), reviewBtn);
+
+  const query = { category: S.cat, chips: S.chips, text: S.text };
+  const cur = run(query);
+  const forCards = run({ chips: S.chips, text: S.text });
+  const m = cur.meta, hardBlocked = cur.excluded.filter((e) => !e.could_unlock && !e.failures.every((f) => f.kind === 'preference')).length;
+  const unlockable = cur.excluded.filter((e) => e.could_unlock).length;
+
+  $('stats').replaceChildren(
+    stat(cur.recommendations.length, 'recommended'), stat(hardBlocked, 'hard-blocked'), stat(unlockable, 'need more info'), stat(m.evaluated, 'tools considered'));
+
+  // chips (survivor-derived)
+  $('chips').replaceChildren(...cur.browse.chips.map((c) => {
+    const on = S.chips.includes(c.id);
+    return el('button', { class: 'pill', style: on ? 'background:var(--accent);color:var(--accent-ink)' : '', 'aria-pressed': String(on), onclick: () => { toggleArr(S.chips, c.id); renderResults(); }, text: `${c.label} · ${c.count}` });
+  }));
+
+  // category cards (survivor-derived; empty categories do not exist)
+  $('cards').replaceChildren(...forCards.browse.categories.map((c) => {
+    const btn = el('button', { class: 'card', 'aria-pressed': String(S.cat === c.id), style: `background:${c.color};color:${dark(c.color) ? '#fff' : '#1B2235'}`, onclick: () => { S.cat = S.cat === c.id ? null : c.id; renderResults(); } },
+      el('b', { text: c.label }), el('span', { text: `${c.count} safe option${c.count === 1 ? '' : 's'}` }));
+    return btn;
+  }));
+  if (!forCards.browse.categories.length) $('cards').replaceChildren(el('div', { class: 'empty', text: 'No categories to show. A category appears only when at least one tool in it passed every safety gate.' }));
+  $('clearCat').hidden = !S.cat; $('clearCat').onclick = () => { S.cat = null; renderResults(); };
+
+  // recommendations
+  const recs = $('recs'); recs.replaceChildren();
+  if (!cur.recommendations.length) recs.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be recommended: the catalogue has no clinician-reviewed entries.' : 'Every candidate tool was disqualified or filtered out. See the reasons below.' }));
+  for (const r of cur.recommendations) {
+    recs.append(el('div', { class: 'tool' },
+      el('div', { class: 'row' }, el('h3', { text: r.name }), el('div', { class: 'row', style: 'gap:8px' }, el('span', { class: 'tag sev-' + r.hazard_severity, text: 'hazard: ' + r.hazard_severity }), el('div', { class: 'bar', title: 'score ' + r.score }, el('i', { style: `width:${Math.round(r.score * 100)}%` })), el('span', { class: 'mono', text: r.score.toFixed(2) }))),
+      el('div', { text: r.summary }),
+      el('div', { class: 'pills' }, ...r.addresses.map((a) => el('span', { class: 'tag', text: taskLabel(a) }))),
+      ...r.cautions.map((c) => el('div', { class: 'caution', text: 'Caution: ' + c }))));
+  }
+
+  // gaps
+  const gaps = $('gaps'); gaps.replaceChildren();
+  $('gapTitle').textContent = `Questions that could unlock more tools (${cur.assessment_gaps.filter((g) => g.could_unlock).length})`;
+  const gapList = cur.assessment_gaps.filter((g) => g.could_unlock);
+  if (!gapList.length) gaps.append(el('div', { class: 'empty', text: 'No unanswered question would change the result.' }));
+  for (const g of gapList) gaps.append(gapRow(g));
+
+  // excluded
+  const ex = $('excl'); ex.replaceChildren();
+  $('exclTitle').textContent = `Disqualified (${cur.excluded.length})`;
+  if (!cur.excluded.length) ex.append(el('div', { class: 'empty', text: 'Nothing disqualified for these goals.' }));
+  for (const e of cur.excluded) {
+    ex.append(el('div', { class: 'excl' }, el('b', { text: e.name }), el('ul', {}, ...e.failures.map((f) =>
+      el('li', {}, el('span', { class: 'tag ' + f.kind, text: f.code }), el('span', { text: f.detail }))))));
+  }
+}
+function stat(n, label) { return el('div', { class: 'stat' }, el('b', { text: String(n) }), el('span', { class: 'label', text: label })); }
+function toggleArr(a, v) { const i = a.indexOf(v); i < 0 ? a.push(v) : a.splice(i, 1); }
+function gapRow(g) {
+  const what = { SCREENING_INCOMPLETE: 'Finish the risk-flag screening', CAPACITY_UNKNOWN: `Assess ${T.dimensions[g.target]?.label ?? g.target}`, ENV_REQUIREMENT_UNCONFIRMED: `Confirm: ${T.environment_tags[g.target]?.label}`, SETUP_HELPER_UNAVAILABLE: 'Confirm someone can set tools up', TECH_UNCONFIRMED: `Confirm skill: ${T.tech_tags[g.target]}` }[g.code] ?? g.code;
+  const row = el('div', { class: 'gap' }, el('div', {}, el('div', { text: what }), el('div', { class: 'caution', text: `unlocks ${g.could_unlock} tool${g.could_unlock === 1 ? '' : 's'}` })));
+  const apply = {
+    SCREENING_INCOMPLETE: () => { S.profile.person.risk_screening_complete = true; },
+    ENV_REQUIREMENT_UNCONFIRMED: () => { S.profile.environment.confirmed_tags.push(g.target); },
+    SETUP_HELPER_UNAVAILABLE: () => { S.profile.environment.confirmed_tags.push('helper_available_for_setup'); },
+    TECH_UNCONFIRMED: () => { S.profile.person.tech_literacy.push(g.target); },
+  }[g.code];
+  if (apply) row.append(el('button', { class: 'act', text: 'Yes, confirm', onclick: () => { apply(); syncControls(); renderResults(); } }));
+  else row.append(el('span', { class: 'caution', text: 'set it in the panel on the left' }));
+  return row;
+}
+
+$('q').addEventListener('input', (e) => { S.text = e.target.value; renderResults(); });
+buildControls(); loadProfile(S.key);
+</script>
