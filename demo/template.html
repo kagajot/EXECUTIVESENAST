@@ -222,6 +222,15 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .step b{display:block;font-size:17px;line-height:1.25}
 .step p{margin:3px 0 0;color:var(--muted);font-size:15px;line-height:1.45}
 .box.warnbox{background:var(--warn-bg)} .box.warnbox h3{color:var(--warn)} .box.warnbox .check span{color:var(--ink)}
+.seg2{grid-template-columns:repeat(4,1fr)}.seg2 button{padding:10px 2px;font-size:13.5px}
+.inshort{background:var(--accent-soft);border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.inshort p{font-size:17px;line-height:1.5;color:var(--ink);margin:0}
+.art{display:flex;flex-direction:column;gap:8px}
+.art h3{font-size:20px}
+.art p{margin:0;font-size:16px;line-height:1.6;color:var(--ink)}
+.art ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.art li{position:relative;padding-left:22px;font-size:16px;line-height:1.5}
+.art li::before{content:"";position:absolute;left:4px;top:.6em;width:8px;height:8px;border-radius:50%;background:var(--accent)}
 </style>
 
 <div class="stage">
@@ -495,6 +504,61 @@ function guideCard(g) {
   return el('button', { class: 'fcard', style: `background:${m.color};color:${onColor(m.color)}`, onclick: () => go('guide', g.id) }, el('b', { text: g.title }), el('span', { text: `${g.steps.length} steps` }), ill(m.ill));
 }
 
+// ---------- articles: short, plain-language reading. General information, not advice for one person.
+const ARTICLES = [
+  { id: 'a_ot', title: "What an occupational therapist does", topic: 'Basics', minutes: 3, color: '#F6C56B', ill: 'hand',
+    summary: "An occupational therapist helps you keep doing what matters to you, by changing the task, the tools or the space around you.",
+    sections: [
+      { h: "The idea in one line", p: ["They look at three things together: you, your home and the task you want to do.", "A problem is rarely only in the body. Often the fix is a different tool, a different way of doing it, or a small change to the room."] },
+      { h: "What they look at", list: ["What you can do reliably, on a good day and on a bad day", "Where the task happens, such as the kitchen or the bathroom", "What the task needs, such as grip, balance or memory"] },
+      { h: "What they might suggest", list: ["A tool, such as a jar opener or a sock aid", "A workaround, such as sitting to prepare food", "A change to the home, such as better light or a fixed grab bar", "Someone to help set things up and to be there for the first few tries"] },
+      { h: "What a first visit is like", p: ["Expect questions about your day, and a look at how you do a few tasks.", "You do not need to prepare perfectly. Describing one hard task clearly is enough to start."] } ],
+    points: ["This app focuses on making a task doable today, not on rehabilitation.", "Your home and routine count as much as your body.", "One clear example helps more than a long list."],
+    cta: { text: "Prepare for a visit", act: 'visit' } },
+  { id: 'a_tools', title: "Tools or workarounds? How to choose", topic: 'Choosing', minutes: 3, color: '#F28C4B', ill: 'eating_kitchen',
+    summary: "A tool changes what you use. A workaround changes how you do it. The simplest option that works is usually the best place to start.",
+    sections: [
+      { h: "The difference", list: ["A tool is an object, like a rocker knife or a reacher", "A workaround is a habit, like a pre-portioned meal or a wall calendar"] },
+      { h: "Start simple", p: ["Simple options cost less, break less and take less time to learn.", "Try a workaround first if it solves the problem. Move to a tool, then to technology, only when you need to."] },
+      { h: "Questions to ask before you buy", list: ["Can I use it safely on a bad day?", "Does my home suit it? Is there space, a socket, or a wall that can take a fixing?", "Who sets it up, and who helps if it fails?", "What is my plan if it stops working?"] },
+      { h: "Try before you commit", p: ["Borrow, rent or test it in a shop where you can.", "Ask your therapist before buying anything expensive."] } ],
+    points: ["Simple first.", "Check that it fits your home, not only your body.", "Always have a plan B."],
+    cta: { text: "Browse categories", act: 'categories' } },
+  { id: 'a_left', title: "Why some tools are left out for you", topic: 'In this app', minutes: 2, color: '#C9A6D8', ill: 'shield',
+    summary: "This app leaves a tool out when it cannot confirm the tool is safe for you. That can feel strict. It is on purpose.",
+    sections: [
+      { h: "Four reasons a tool is left out", list: ["A limit: your ability is below what the tool needs", "A risk: something in your health makes the tool unsafe", "Your home: a needed fact is missing, or something blocks it", "Not sure: an answer is missing, so it counts as a no"] },
+      { h: "Not sure counts as no", p: ["If you skip a question, the app cannot know the tool is safe, so it leaves the tool out.", "Answering more questions can only add tools that are confirmed safe. It never lets an unsafe one in."] },
+      { h: "How to get more options", list: ["Finish the check-ins in Learn", "Confirm facts about your home", "Ask your therapist about a tool you like. They can assess it with you"] } ],
+    points: ["Left out means not confirmed, not banned for good.", "Answers you are unsure about count against a tool.", "Your therapist can go further than an app can."],
+    cta: { text: "Open check-ins", act: 'checkins' } },
+  { id: 'a_bath', title: "Making the bathroom safer to use", topic: 'Bathroom', minutes: 3, color: '#5B8FD4', ill: 'bathing_toileting',
+    summary: "Most bathroom accidents happen on wet, hard surfaces while stepping or standing up. Small changes make a big difference.",
+    sections: [
+      { h: "Where it goes wrong", list: ["Getting in and out of the bath or shower", "Standing up from the toilet", "Wet floors and loose mats"] },
+      { h: "Easy changes to start with", list: ["Bright, even light, and a night light for evenings", "A non-slip mat in the tub or shower and a firm one outside", "Everything you need within reach, at waist height", "Sitting to wash if standing is tiring"] },
+      { h: "Support you can trust", p: ["A grab bar has to be fixed into the wall structure by a qualified installer.", "Do not rely on suction-cup bars or towel rails for support. They can come loose."] },
+      { h: "Before you change anything", p: ["Check what your landlord allows. Drilling into walls may need permission.", "Ask your therapist which position and height suit you."] } ],
+    points: ["Light, grip and somewhere to sit come first.", "Fixed bars, not suction bars.", "A therapist can check the exact spot."],
+    cta: { text: "See bathing tools", act: 'bathing' } },
+  { id: 'a_energy', title: "Getting through hard days with less effort", topic: 'Everyday', minutes: 3, color: '#4FB8B0', ill: 'bulb',
+    summary: "You can protect your energy without doing less of what matters. Plan the day, sit when you can, and spread the work out.",
+    sections: [
+      { h: "Choose what counts", p: ["Pick the two or three things that matter most today.", "Let the rest wait, or ask for help."] },
+      { h: "Change how you do it", list: ["Sit to prepare food, dress and wash", "Slide things instead of lifting them", "Keep what you use often at waist height", "Use a tool that takes over the hard part"] },
+      { h: "Plan rests before you need them", p: ["Short breaks before you are worn out work better than long ones after.", "Alternate hard tasks with easy ones."] },
+      { h: "Spread it out", p: ["Cook a double batch and freeze half. Do a little laundry each day.", "Save a heavy task for your best time of day."] } ],
+    points: ["Choose first, then simplify.", "Rest early, not late.", "It is fine to ask for help with the heavy parts."],
+    cta: { text: "Build a daily routine", act: 'routine' } },
+];
+const articleCard = (a) => el('button', { class: 'fcard', style: `background:${a.color};color:${onColor(a.color)}`, onclick: () => go('article', a.id) }, el('b', { text: a.title }), el('span', { text: `${a.minutes} min read` }), ill(a.ill));
+const articleRow = (a) => el('button', { class: 'item', onclick: () => go('article', a.id) }, el('div', { class: 'tile', style: `background:${a.color}` }, ill(a.ill)),
+  el('div', { class: 'txt' }, el('b', { text: a.title }), el('span', { text: a.summary }), el('div', { class: 'row2', style: 'margin-top:4px' }, el('span', { class: 'tag plain', text: a.topic }), el('span', { class: 'tag plain', text: `${a.minutes} min read` }))));
+const ARTICLE_ACTS = {
+  visit: () => go('guide', 'g_visit'), routine: () => go('guide', 'g_routine'), categories: () => tab('categories'),
+  checkins: () => { S.learnTab = 'checkins'; tab('learn'); }, bathing: () => go('category', 'bathing_toileting'),
+};
+
 // ---------- check-ins (assessments): each one is a focused set of the questions the engine needs
 const CHECKINS = [
   { id: 'hands', title: 'Hands and grip', color: '#F6C56B', ill: 'hand', dims: ['grip_strength', 'fine_motor', 'bilateral_hand_use', 'tremor_control'] },
@@ -654,12 +718,14 @@ const PAGES = {
         const t = S.text.trim().toLowerCase();
         const vids = t ? VIDEOS.filter((x) => videoState(x, ids) !== 'blocked' && (x.title.toLowerCase().includes(t) || CAT[x.category].label.toLowerCase().includes(t))) : [];
         const checks = t ? CHECKINS.filter((c) => c.title.toLowerCase().includes(t)) : [];
+        const arts = t ? ARTICLES.filter((x) => (x.title + ' ' + x.topic + ' ' + x.summary).toLowerCase().includes(t)) : [];
         const gds = t ? GUIDES.filter((x) => guideState(x) !== 'blocked' && (x.title.toLowerCase().includes(t) || guideMeta(x).label.toLowerCase().includes(t))) : [];
         if (r.length) box.append(el('div', { class: 'sec' }, el('h2', { text: `Tools · ${r.length}` }), el('div', { class: 'list' }, ...r.map((x, i) => toolItem(x, i === 0 && !t)))));
+        if (arts.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Articles' }), el('div', { class: 'list' }, ...arts.map(articleRow))));
         if (gds.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Guides' }), el('div', { class: 'list' }, ...gds.map(guideRow))));
         if (vids.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Videos' }), el('div', { class: 'list' }, ...vids.map((x) => videoNode(x, videoState(x, ids), true)))));
         if (checks.length) box.append(el('div', { class: 'sec' }, el('h2', { text: 'Check-ins' }), ...checks.map((c) => checkinCard(c, all, true))));
-        if (!r.length && !vids.length && !checks.length && !gds.length) box.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'Nothing safe matches that. Clear the search, or try a check-in in Learn to open more up.' }));
+        if (!r.length && !vids.length && !checks.length && !gds.length && !arts.length) box.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'Nothing safe matches that. Clear the search, or try a check-in in Learn to open more up.' }));
         return;
       }
       // collage: featured carousel, videos, check-ins
@@ -667,6 +733,7 @@ const PAGES = {
         el('div', { class: 'hscroll' }, ...recs.slice(0, 5).map((r) => { const c = CAT[r.category].color; return el('button', { class: 'fcard', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', r.tool_id) }, el('b', { text: r.name }), el('span', { text: CAT[r.category].label }), ill(r.category)); }))));
       const gd = GUIDES.filter((x) => guideState(x) !== 'blocked').slice(0, 6);
       if (gd.length) box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Step by step' }), el('button', { class: 'link', text: 'See all', onclick: () => { S.learnTab = 'guides'; tab('learn'); } })), el('div', { class: 'hscroll' }, ...gd.map(guideCard))));
+      box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Read' }), el('button', { class: 'link', text: 'See all', onclick: () => { S.learnTab = 'articles'; tab('learn'); } })), el('div', { class: 'hscroll' }, ...ARTICLES.map(articleCard))));
       const vids = VIDEOS.filter((x) => videoState(x, ids) !== 'blocked').slice(0, 6);
       if (vids.length) box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Watch and learn' }), el('button', { class: 'link', text: 'See all', onclick: () => tab('learn') })), el('div', { class: 'hscroll' }, ...vids.map((x) => videoNode(x, videoState(x, ids), false)))));
       box.append(el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: 'Check-ins' }), el('button', { class: 'link', text: 'See all', onclick: () => tab('learn') })), el('div', { class: 'hscroll' }, ...CHECKINS.map((c) => checkinCard(c, all, false)))));
@@ -719,11 +786,13 @@ const PAGES = {
         body.append(...[...VIDEOS].sort((a, b) => rank[videoState(a, ids)] - rank[videoState(b, ids)]).map((x) => videoNode(x, videoState(x, ids), true)));
       } else if (S.learnTab === 'guides') {
         body.append(...[...GUIDES].sort((a, b) => guideRank[guideState(a)] - guideRank[guideState(b)]).map(guideRow));
+      } else if (S.learnTab === 'articles') {
+        body.append(...ARTICLES.map(articleRow));
       } else {
         body.append(...CHECKINS.map((c) => checkinCard(c, all, true)));
       }
     };
-    for (const [t, l] of [['videos', 'Videos'], ['guides', 'Guides'], ['checkins', 'Check-ins']]) seg.append(el('button', { 'data-t': t, text: l, onclick: () => { S.learnTab = t; draw(); } }));
+    for (const [t, l] of [['videos', 'Videos'], ['guides', 'Guides'], ['articles', 'Articles'], ['checkins', 'Check-ins']]) seg.append(el('button', { 'data-t': t, text: l, onclick: () => { S.learnTab = t; draw(); } }));
     v.append(seg, body); draw();
   },
 
@@ -735,6 +804,15 @@ const PAGES = {
     if (g.watch.length) v.append(el('div', { class: 'box warnbox' }, el('h3', { text: 'Watch out' }), ...g.watch.map((w) => el('div', { class: 'check warn' }, el('i', { text: '!' }), el('span', { text: w })))));
     if (g.tool) v.append(el('button', { class: 'btn', text: 'See the tool', onclick: () => go('tool', g.tool) }));
     if (g.action === 'summary') v.append(el('button', { class: 'btn', text: 'Open my summary', onclick: openSummary }));
+  },
+
+  article(v, id) {
+    const a = ARTICLES.find((x) => x.id === id);
+    v.append(el('div', { class: 'catbig', style: `background:${a.color};color:${onColor(a.color)}` }, el('h1', { text: a.title }), el('span', { text: `${a.topic} · ${a.minutes} min read` }), ill(a.ill)));
+    v.append(el('div', { class: 'inshort' }, el('div', { class: 'label', text: 'In short' }), el('p', { text: a.summary })));
+    for (const sec of a.sections) v.append(el('section', { class: 'art' }, el('h3', { text: sec.h }), ...(sec.p ?? []).map((t) => el('p', { text: t })), sec.list ? el('ul', {}, ...sec.list.map((t) => el('li', { text: t }))) : null));
+    v.append(el('div', { class: 'box' }, el('h3', { text: 'Key points' }), ...a.points.map((t) => el('div', { class: 'check' }, el('i', { text: '✓' }), el('span', { text: t })))));
+    if (a.cta) v.append(el('button', { class: 'btn', text: a.cta.text, onclick: ARTICLE_ACTS[a.cta.act] }));
   },
 
   checkin(v, id) {
