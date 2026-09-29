@@ -1,116 +1,139 @@
 <title>PEO Assistive Matcher</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: two panes. Left = the PEO profile you can edit. Right = what a user would see (browse cards) plus the audit trail. */
+/* Layout: a phone-sized app (bottom tabs, pushed pages) centred on white. On a real phone it fills the screen. */
 :root{
-  --bg:#F5F6FA; --surface:#FFFFFF; --ink:#1B2235; --muted:#5D6580; --line:#E1E4EE; --accent:#3D5AF1; --accent-ink:#FFFFFF;
-  --ok:#1E8E5A; --ok-bg:#DDF3E8; --warn:#9A6200; --warn-bg:#FCEBC7; --bad:#B3261E; --bad-bg:#FBDCD9; --soft:#EDEFF6;
+  --bg:#FFFFFF; --surface:#F5F6FA; --ink:#1B2235; --muted:#626B85; --line:#E9EBF2; --accent:#3D5AF1; --accent-ink:#FFFFFF; --accent-soft:#E9EDFF;
+  --ok:#1E8E5A; --ok-bg:#DDF3E8; --warn:#9A6200; --warn-bg:#FCEBC7; --bad:#B3261E; --bad-bg:#FBDCD9; --shadow:0 18px 50px rgba(27,34,53,.10);
   --f-display:'Bricolage Grotesque','DM Sans',system-ui,sans-serif; --f-body:'DM Sans',system-ui,sans-serif; --f-mono:'IBM Plex Mono',ui-monospace,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#12151F; --surface:#1B2030; --ink:#E9ECF6; --muted:#9AA3BD; --line:#2C3348; --accent:#8CA0FF; --accent-ink:#10142A;
-  --ok:#6FD3A3; --ok-bg:#163527; --warn:#F1C46B; --warn-bg:#3B2E10; --bad:#FF9C94; --bad-bg:#3E1B19; --soft:#252B3F; color-scheme:dark}}
+  --bg:#12151F; --surface:#1C2131; --ink:#E9ECF6; --muted:#9AA3BD; --line:#2A3046; --accent:#8CA0FF; --accent-ink:#10142A; --accent-soft:#252C4D;
+  --ok:#6FD3A3; --ok-bg:#163527; --warn:#F1C46B; --warn-bg:#3B2E10; --bad:#FF9C94; --bad-bg:#3E1B19; --shadow:0 18px 50px rgba(0,0,0,.4); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#12151F; --surface:#1B2030; --ink:#E9ECF6; --muted:#9AA3BD; --line:#2C3348; --accent:#8CA0FF; --accent-ink:#10142A;
-  --ok:#6FD3A3; --ok-bg:#163527; --warn:#F1C46B; --warn-bg:#3B2E10; --bad:#FF9C94; --bad-bg:#3E1B19; --soft:#252B3F; color-scheme:dark}
+  --bg:#12151F; --surface:#1C2131; --ink:#E9ECF6; --muted:#9AA3BD; --line:#2A3046; --accent:#8CA0FF; --accent-ink:#10142A; --accent-soft:#252C4D;
+  --ok:#6FD3A3; --ok-bg:#163527; --warn:#F1C46B; --warn-bg:#3B2E10; --bad:#FF9C94; --bad-bg:#3E1B19; --shadow:0 18px 50px rgba(0,0,0,.4); color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.5;padding-inline:16px;padding-block:20px 48px}
-.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+button{font:inherit;color:inherit}
 h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
-h1{font-size:clamp(24px,4vw,34px);line-height:1.1}
-h2{font-size:18px} h3{font-size:15px}
-.lede{color:var(--muted);max-width:68ch;margin:6px 0 0}
-.mono{font-family:var(--f-mono);font-size:12px}
+h1{font-size:28px;line-height:1.12} h2{font-size:19px} h3{font-size:16px}
+.mono{font-family:var(--f-mono);font-size:11px}
 .label{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700}
-.top{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-end}
-.demo-note{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:10px 14px;max-width:62ch}
-.grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;align-items:start}
-@media(max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
-.sec{display:flex;flex-direction:column;gap:8px}
-select,input[type=search]{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
-select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
-.pills{display:flex;flex-wrap:wrap;gap:6px}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:var(--soft);cursor:pointer;user-select:none;font-size:13px;border:1px solid transparent}
-.pill input{position:absolute;opacity:0;pointer-events:none}
-.pill:has(input:checked){background:var(--accent);color:var(--accent-ink)}
-.pill.risk:has(input:checked){background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
-.pill.env:has(input:checked){background:var(--ok-bg);color:var(--ok);border-color:var(--ok)}
-.pill.env.forb:has(input:checked){background:var(--bad-bg);color:var(--bad);border-color:var(--bad)}
-.caps{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
-.caps label{color:var(--ink)} .caps select{padding:4px 6px;font-size:13px}
-details{border-top:1px solid var(--line);padding-top:10px} summary{cursor:pointer;font-weight:700;font-family:var(--f-display);list-style-position:inside}
-.stats{display:flex;flex-wrap:wrap;gap:8px}
-.stat{background:var(--soft);border-radius:12px;padding:8px 12px;display:flex;flex-direction:column;min-width:96px}
-.stat b{font-family:var(--f-display);font-size:22px;line-height:1.1;font-variant-numeric:tabular-nums}
-.search{width:100%;border-radius:999px;padding:11px 16px}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
-.card{position:relative;overflow:hidden;border:0;border-radius:18px;min-height:96px;padding:14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;font:inherit}
+.muted{color:var(--muted)}
+
+.stage{height:100%;display:grid;place-items:center;padding:20px}
+.app{position:relative;width:100%;max-width:410px;height:min(100%,860px);background:var(--bg);border:1px solid var(--line);border-radius:38px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+@media(max-width:520px){.stage{padding:0;display:block}.app{max-width:none;height:100%;border:0;border-radius:0;box-shadow:none}}
+
+.bar[hidden]{display:none}
+.bar{display:flex;align-items:center;gap:8px;padding:14px 12px 6px;flex:none}
+.bar h2{flex:1;text-align:center;font-size:16px;padding-right:40px}
+.iconbtn{width:40px;height:40px;border:0;border-radius:50%;background:transparent;display:grid;place-items:center;cursor:pointer}
+.iconbtn:hover{background:var(--surface)}
+main{flex:1;overflow-y:auto;overflow-x:hidden;padding:22px 20px 24px;display:flex;flex-direction:column;gap:18px;min-height:0;scrollbar-width:thin}
+.bar:not([hidden])+main{padding-top:10px}
+.head{display:flex;flex-direction:column;gap:6px}
+.head p{margin:0;color:var(--muted)}
+
+.tabs{flex:none;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);background:var(--bg);padding:8px 6px calc(10px + env(safe-area-inset-bottom,0px))}
+.tab{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px;color:var(--muted);font-size:11px;cursor:pointer;position:relative;border-radius:12px}
+.tab svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab[aria-current=page]{color:var(--accent)}
+.badge{position:absolute;top:0;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--bad);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.search{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:999px;padding:0 16px;background:var(--bg)}
+.search svg{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linecap:round;flex:none}
+.search input{flex:1;min-width:0;border:0;background:none;color:var(--ink);font:inherit;padding:12px 0;outline:0}
+.search:focus-within{border-color:var(--accent)}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-inline:-20px;padding-inline:20px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 16px;cursor:pointer;font-size:14px}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* category cards: kept from v1 */
+.cards{display:flex;flex-direction:column;gap:12px}
+.card{position:relative;overflow:hidden;border:0;border-radius:18px;min-height:84px;padding:0 18px;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:center;font:inherit;width:100%}
 .card::before,.card::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.28)}
-.card::before{width:86px;height:86px;right:-18px;top:-22px} .card::after{width:40px;height:40px;right:44px;top:34px;background:rgba(255,255,255,.2)}
-.card b{font-family:var(--f-display);font-size:17px;position:relative} .card span{position:relative;font-size:12px;opacity:.85}
-.card[aria-pressed=true]{outline:3px solid var(--ink);outline-offset:2px}
-.tool{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-top:1px solid var(--line)}
-.tool:first-child{border-top:0}
-.tool .row{display:flex;flex-wrap:wrap;gap:8px;align-items:baseline;justify-content:space-between}
-.bar{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;width:110px}.bar i{display:block;height:100%;background:var(--accent)}
-.tag{font-size:11px;border-radius:6px;padding:1px 7px;background:var(--soft);color:var(--muted)}
-.tag.sev-high{background:var(--bad-bg);color:var(--bad)} .tag.sev-moderate{background:var(--warn-bg);color:var(--warn)}
+.card::before{width:98px;height:98px;right:-18px;top:-24px} .card::after{width:46px;height:46px;right:54px;top:42px;background:rgba(255,255,255,.2)}
+.card b{font-family:var(--f-display);font-size:18px;position:relative} .card span{position:relative;font-size:13px;opacity:.85}
+@media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:active{transform:scale(.985)}.page{animation:in .18s ease-out}@keyframes in{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}}
+
+.notice{display:flex;gap:12px;align-items:center;justify-content:space-between;border-radius:16px;padding:12px 14px;background:var(--warn-bg);color:var(--warn);font-size:13px;cursor:pointer;border:0;text-align:left;width:100%}
+.notice.safe{background:var(--ok-bg);color:var(--ok)}
+.linkrow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.link{border:0;background:none;color:var(--accent);font-weight:700;cursor:pointer;padding:4px 0}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;gap:14px;align-items:center;border:0;background:var(--surface);border-radius:18px;padding:12px;text-align:left;cursor:pointer;width:100%}
+.tile{position:relative;flex:none;width:54px;height:54px;border-radius:16px;overflow:hidden}
+.tile::before{content:"";position:absolute;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.35);right:-8px;top:-8px}
+.tile::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.25);left:10px;bottom:9px}
+.item .txt{min-width:0;display:flex;flex-direction:column;gap:2px;flex:1}
+.item .txt b{font-family:var(--f-display);font-size:16px}
+.item .txt span{color:var(--muted);font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tag{display:inline-block;font-size:11px;border-radius:7px;padding:2px 8px;background:var(--surface);color:var(--muted);font-weight:500}
+.item .tag{background:var(--bg)}
+.tag.sev-high{background:var(--bad-bg);color:var(--bad)} .tag.sev-moderate{background:var(--warn-bg);color:var(--warn)} .tag.best{background:var(--accent-soft);color:var(--accent);font-weight:700}
 .tag.hard{background:var(--bad-bg);color:var(--bad);font-family:var(--f-mono)} .tag.unconfirmed{background:var(--warn-bg);color:var(--warn);font-family:var(--f-mono)} .tag.preference{font-family:var(--f-mono)}
-.caution{color:var(--muted);font-size:13px}
-.excl{display:flex;flex-direction:column;gap:2px;padding:9px 0;border-top:1px solid var(--line)}
-.excl ul{margin:2px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px}
-.excl li{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;color:var(--muted);font-size:13px}
-.scroll{max-height:420px;overflow:auto}
-.gap{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}
-button.act{font:inherit;font-weight:700;border:0;background:var(--accent);color:var(--accent-ink);padding:6px 12px;border-radius:999px;cursor:pointer}
-button.ghost{font:inherit;border:1px solid var(--line);background:transparent;color:var(--ink);padding:5px 12px;border-radius:999px;cursor:pointer}
-.empty{background:var(--soft);border-radius:14px;padding:16px;color:var(--muted)}
-.switch{display:flex;gap:8px;align-items:center}
-@media (prefers-reduced-motion:no-preference){.card{transition:transform .12s}.card:hover{transform:translateY(-2px)}}
+.row2{display:flex;flex-wrap:wrap;gap:6px}
+
+.hero{position:relative;overflow:hidden;border-radius:22px;padding:22px 20px;min-height:150px;display:flex;flex-direction:column;justify-content:flex-end;gap:4px}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.28)}
+.hero::before{width:150px;height:150px;right:-30px;top:-40px} .hero::after{width:70px;height:70px;right:90px;top:70px;background:rgba(255,255,255,.2)}
+.hero *{position:relative} .hero h1{font-size:26px}
+.sec{display:flex;flex-direction:column;gap:10px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.check i{flex:none;width:20px;height:20px;border-radius:50%;background:var(--ok-bg);color:var(--ok);display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;margin-top:1px}
+.check.warn i{background:var(--warn-bg);color:var(--warn)}
+.meter{display:grid;grid-template-columns:110px 1fr 34px;gap:10px;align-items:center;font-size:13px}
+.meter .bar2{height:6px;border-radius:9px;background:var(--surface);overflow:hidden}.meter .bar2 i{display:block;height:100%;background:var(--accent);border-radius:9px}
+.meter .mono{text-align:right}
+.box{background:var(--surface);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}
+
+.empty{background:var(--surface);border-radius:18px;padding:18px;color:var(--muted);text-align:center}
+.reason{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--muted)}
+.blocked{background:var(--surface);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.blocked .reason{flex-direction:row;flex-wrap:wrap;gap:6px;align-items:baseline}
+.ask{display:flex;gap:10px;justify-content:space-between;align-items:center;background:var(--accent-soft);border-radius:18px;padding:12px 14px}
+.ask b{display:block;font-weight:700}.ask span{font-size:13px;color:var(--muted)}
+.btn{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700;padding:9px 16px;border-radius:999px;cursor:pointer;flex:none}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+
+.rows{display:flex;flex-direction:column;background:var(--surface);border-radius:18px;overflow:hidden}
+.rowlink{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 16px;border:0;border-top:1px solid var(--line);background:none;cursor:pointer;text-align:left;width:100%}
+.rowlink:first-child{border-top:0}
+.rowlink small{color:var(--muted);display:block}
+.rowlink svg{width:18px;height:18px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+select.sel{width:100%;font:inherit;color:var(--ink);background:var(--surface);border:0;border-radius:14px;padding:13px 14px}
+
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{border:1.5px solid var(--line);background:var(--bg);border-radius:999px;padding:8px 14px;cursor:pointer;font-size:14px}
+.pill[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.pill.risk[aria-pressed=true]{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.pill.env[aria-pressed=true]{background:var(--ok-bg);border-color:var(--ok);color:var(--ok)}
+.pill.env.forb[aria-pressed=true]{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.cap{display:flex;flex-direction:column;gap:6px}
+.seg{display:grid;grid-template-columns:1.5fr repeat(5,1fr);gap:4px;background:var(--surface);border-radius:12px;padding:3px}
+.seg button{border:0;background:none;border-radius:9px;padding:7px 0;cursor:pointer;font-weight:700;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--bg);color:var(--accent);box-shadow:0 1px 3px rgba(27,34,53,.15)}
+.seg button.na[aria-pressed=true]{color:var(--warn)}
+.switchrow{display:flex;justify-content:space-between;align-items:center;gap:14px;background:var(--surface);border-radius:18px;padding:14px 16px}
+.toggle{flex:none;width:50px;height:30px;border-radius:15px;border:0;background:var(--line);position:relative;cursor:pointer}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .15s}
+.toggle[aria-pressed=true]{background:var(--accent)} .toggle[aria-pressed=true]::after{transform:translateX(20px)}
 </style>
 
-<div class="wrap">
-  <div class="top">
-    <div>
-      <div class="label">Person · Environment · Occupation</div>
-      <h1>Assistive tool matcher</h1>
-      <p class="lede">The real matching engine, running in your browser. Change a capacity, an environment fact or a risk flag on the left and watch tools get admitted or disqualified. Nothing is ever recommended on a guess: anything not confirmed counts as a failure.</p>
+<div class="stage">
+  <div class="app" id="app">
+    <div class="bar" id="bar" hidden>
+      <button class="iconbtn" id="back" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <h2 id="barTitle"></h2>
     </div>
-    <div class="demo-note" id="modeNote"></div>
-  </div>
-
-  <div class="grid">
-    <div class="panel" id="controls">
-      <div class="sec">
-        <label class="label" for="profileSel">Example person</label>
-        <select id="profileSel"></select>
-      </div>
-      <div class="sec"><span class="label">Occupation: what they want to do</span><div class="pills" id="goals"></div></div>
-      <details open><summary>Person: capacity (0 unable to 4 typical)</summary><div class="sec" id="caps" style="margin-top:10px"></div></details>
-      <details open><summary>Person: risk screening</summary>
-        <div class="sec" style="margin-top:10px">
-          <div class="pills" id="risks"></div>
-          <label class="pill" style="align-self:flex-start"><input type="checkbox" id="screened"><span>Risk screening completed</span></label>
-        </div>
-      </details>
-      <details><summary>Person: tech and budget</summary>
-        <div class="sec" style="margin-top:10px"><div class="pills" id="tech"></div>
-          <label class="label" for="budget">Budget</label><select id="budget"></select></div>
-      </details>
-      <details open><summary>Environment: confirmed facts</summary><div class="sec" id="env" style="margin-top:10px"></div></details>
-    </div>
-
-    <div class="panel" id="results">
-      <div class="stats" id="stats"></div>
-      <input class="search" id="q" type="search" placeholder="Search tools, tasks, tags" aria-label="Search recommended tools">
-      <div class="pills" id="chips"></div>
-      <div class="cards" id="cards"></div>
-      <div class="switch"><button class="ghost" id="clearCat" hidden>Show all categories</button></div>
-      <div class="sec"><h2>Recommended</h2><div id="recs"></div></div>
-      <details><summary id="gapTitle">Questions that could unlock more tools</summary><div id="gaps" style="margin-top:8px"></div></details>
-      <details open><summary id="exclTitle">Disqualified</summary><div class="scroll" id="excl" style="margin-top:8px"></div></details>
-    </div>
+    <main id="view"></main>
+    <nav class="tabs" id="tabs" aria-label="Main"></nav>
   </div>
 </div>
 
@@ -462,158 +485,233 @@ const DATA = {"taxonomy":{"version":"0.1.0","scale":{"note":"Capacity = what the
 const T = DATA.taxonomy, TOOLS = DATA.tools, PROFILES = DATA.profiles;
 const $ = (id) => document.getElementById(id);
 const clone = (x) => JSON.parse(JSON.stringify(x));
-const el = (tag, attrs = {}, ...kids) => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v); } kids.forEach((c) => n.append(c)); return n; };
-const S = { key: 'post_stroke_left_hemiparesis', profile: null, review: false, cat: null, chips: [], text: '' };
-const dark = (hex) => { const n = parseInt(hex.slice(1), 16); const l = 0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255); return l < 140; };
-const taskLabel = (id) => T.tasks[id].label;
+const el = (tag, attrs = {}, ...kids) => { const n = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (v == null || v === false) continue; if (k === 'class') n.className = v; else if (k === 'text') n.textContent = v; else if (k === 'html') n.innerHTML = v; else if (k.startsWith('on')) n.addEventListener(k.slice(2), v); else n.setAttribute(k, v === true ? '' : v); } for (const c of kids.flat()) if (c != null) n.append(c); return n; };
+const CAT = Object.fromEntries(T.categories.map((c) => [c.id, c]));
+const FEATURED_COLOR = '#F4A6A0';
+const dark = (hex) => { const n = parseInt(hex.slice(1), 16); return 0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255) < 140; };
+const onColor = (hex) => (dark(hex) ? '#FFFFFF' : '#1B2235');
+const S = { key: 'post_stroke_left_hemiparesis', profile: null, review: false, stack: [{ page: 'home' }], cat: null, chips: [], text: '', task: null };
+
+const ICON = {
+  home: '<path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',
+  explore: '<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>',
+  safety: '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2.2 2.2L15.5 10"/>',
+  profile: '<circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.6 3.6-5.4 7-5.4s6.2 1.8 7 5.4"/>',
+};
+const CHEV = '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>';
 
 function run(query) {
   const p = clone(S.profile); p.occupation.query = query;
   return recommend({ profile: p, tools: TOOLS, taxonomy: T, options: { requireClinicalReview: S.review } });
 }
+const toolOf = (id) => TOOLS.find((t) => t.id === id);
 
-// ---------- controls (built once, then synced from state)
-function pillCheckbox(id, text, cls, onchange) {
-  const input = el('input', { type: 'checkbox', id, onchange });
-  return el('label', { class: 'pill ' + cls }, input, el('span', { text }));
+// ---------- router
+const TABS = [['home', 'Home'], ['explore', 'Explore'], ['safety', 'Safety'], ['profile', 'Profile']];
+function tab(name) { S.stack = [{ page: name }]; render(); }
+function go(page, arg) { S.stack.push({ page, arg }); render(); }
+function back() { if (S.stack.length > 1) S.stack.pop(); render(); }
+function exploreWith(f) { S.cat = f.cat ?? null; S.chips = f.chips ?? []; S.text = f.text ?? ''; S.task = f.task ?? null; tab('explore'); }
+
+const TITLES = { tool: 'Tool', p_goals: 'What I want to do', p_caps: 'Abilities', p_risk: 'Risk screening', p_tech: 'Tech and budget', p_env: 'My home', p_settings: 'Settings' };
+function render() {
+  const cur = S.stack[S.stack.length - 1], sub = S.stack.length > 1;
+  $('bar').hidden = !sub; $('barTitle').textContent = sub ? (cur.page === 'tool' ? '' : TITLES[cur.page]) : '';
+  const view = $('view'); view.replaceChildren(); view.className = 'page';
+  void view.offsetWidth; view.className = 'page';
+  PAGES[cur.page](view, cur.arg);
+  view.scrollTop = 0;
+  const base = S.stack[0].page;
+  const shield = badgeCount();
+  $('tabs').replaceChildren(...TABS.map(([id, label]) => el('button', { class: 'tab', 'aria-current': base === id ? 'page' : null, onclick: () => tab(id) },
+    el('span', { html: `<svg viewBox="0 0 24 24">${ICON[id]}</svg>` }), label, id === 'safety' && shield ? el('span', { class: 'badge', text: String(shield) }) : null)));
 }
-function buildControls() {
-  const sel = $('profileSel');
-  for (const [k, p] of Object.entries(PROFILES)) sel.append(el('option', { value: k, text: p.person.label }));
-  sel.append(el('option', { value: '__blank', text: 'Blank profile (nothing assessed)' }));
-  sel.addEventListener('change', () => loadProfile(sel.value));
+function badgeCount() { try { return run({}).excluded.length; } catch { return 0; } }
+$('back').addEventListener('click', back);
 
-  for (const [id, t] of Object.entries(T.tasks)) $('goals').append(pillCheckbox('g_' + id, t.label, '', (e) => {
-    const g = S.profile.occupation.goals; const i = g.indexOf(id);
-    if (e.target.checked && i < 0) g.push(id); if (!e.target.checked && i >= 0) g.splice(i, 1); update();
-  }));
+// ---------- shared pieces
+function catCard(label, sub, color, onclick) {
+  return el('button', { class: 'card', style: `background:${color};color:${onColor(color)}`, onclick }, el('b', { text: label }), el('span', { text: sub }));
+}
+function toolItem(r, best) {
+  const color = CAT[r.category].color;
+  return el('button', { class: 'item', onclick: () => go('tool', r.tool_id) },
+    el('div', { class: 'tile', style: `background:${color}` }),
+    el('div', { class: 'txt' }, el('b', { text: r.name }), el('span', { text: r.summary }),
+      el('div', { class: 'row2', style: 'margin-top:4px' }, best ? el('span', { class: 'tag best', text: 'Best match' }) : null,
+        el('span', { class: 'tag', text: CAT[r.category].label }), r.hazard_severity !== 'none' && r.hazard_severity !== 'low' ? el('span', { class: 'tag sev-' + r.hazard_severity, text: 'take care' }) : null)));
+}
+const searchBox = (value, oninput, autofocus) => {
+  const input = el('input', { type: 'search', placeholder: 'Search tools and tasks', value, 'aria-label': 'Search', oninput: (e) => oninput(e.target.value) });
+  return el('label', { class: 'search' }, el('span', { html: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>' }), input);
+};
+const modeNotice = () => el('button', { class: 'notice' + (S.review ? '' : ''), onclick: () => go('p_settings') },
+  el('span', { text: S.review ? 'Production mode. Every catalogue entry is an unreviewed draft, so nothing can be shown.' : 'Demo catalogue. Entries are unreviewed drafts and thresholds are illustrative, not clinical advice.' }), el('span', { html: CHEV.replace('<svg', '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"') }));
 
-  const groups = {};
-  for (const [d, m] of Object.entries(T.dimensions)) (groups[m.group] ??= []).push([d, m.label]);
-  for (const [grp, dims] of Object.entries(groups)) {
-    const box = el('div', { class: 'caps' });
-    box.append(el('div', { class: 'label', text: grp }), el('span'));
-    for (const [d, label] of dims) {
-      const s = el('select', { id: 'c_' + d, 'aria-label': label });
-      s.append(el('option', { value: '', text: 'not assessed' })); for (let i = 0; i <= 4; i++) s.append(el('option', { value: String(i), text: String(i) }));
-      s.addEventListener('change', () => { S.profile.person.capacities[d] = s.value === '' ? null : Number(s.value); update(); });
-      box.append(el('label', { for: 'c_' + d, text: label }), s);
+// ---------- pages
+const PAGES = {
+  home(v) {
+    const all = run({}), goals = S.profile.occupation.goals;
+    v.append(el('div', { class: 'head' }, el('div', { class: 'label', text: S.profile.person.label }), el('h1', { text: 'What would you like to make easier?' })));
+    v.append(searchBox('', (t) => { exploreWith({ text: t }); }));
+    if (goals.length) v.append(el('div', { class: 'chips' }, ...goals.map((g) => el('button', { class: 'chip', onclick: () => exploreWith({ task: g }), text: T.tasks[g].label }))));
+    v.append(modeNotice());
+    const cards = el('div', { class: 'cards' });
+    if (all.recommendations.length) cards.append(catCard('Best matches for you', `${all.recommendations.length} safe option${all.recommendations.length === 1 ? '' : 's'}`, FEATURED_COLOR, () => exploreWith({})));
+    for (const c of all.browse.categories) cards.append(catCard(c.label, `${c.count} safe option${c.count === 1 ? '' : 's'}`, c.color, () => exploreWith({ cat: c.id })));
+    if (!all.recommendations.length) cards.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'No tool passed every safety check for these goals. See Safety to find out why and what to confirm.' }));
+    v.append(cards);
+    if (all.excluded.length) v.append(el('button', { class: 'notice safe', onclick: () => tab('safety') }, el('span', { text: `${all.excluded.length} tool${all.excluded.length === 1 ? ' is' : 's are'} kept out of your results for safety. See why.` }), el('span', { html: CHEV.replace('<svg', '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"') })));
+  },
+
+  explore(v) {
+    const draw = () => {
+      list.replaceChildren();
+      const cur = run({ category: S.cat, chips: S.chips, text: S.text });
+      let recs = cur.recommendations; if (S.task) recs = recs.filter((r) => r.addresses.includes(S.task));
+      const chipsBox = el('div', { class: 'chips' });
+      for (const c of cur.browse.chips) chipsBox.append(el('button', { class: 'chip', 'aria-pressed': String(S.chips.includes(c.id)), text: `${c.label} · ${c.count}`, onclick: () => { const i = S.chips.indexOf(c.id); i < 0 ? S.chips.push(c.id) : S.chips.splice(i, 1); draw(); } }));
+      const active = el('div', { class: 'row2' });
+      if (S.cat) active.append(el('button', { class: 'chip', 'aria-pressed': 'true', text: CAT[S.cat].label + '  ×', onclick: () => { S.cat = null; draw(); } }));
+      if (S.task) active.append(el('button', { class: 'chip', 'aria-pressed': 'true', text: T.tasks[S.task].label + '  ×', onclick: () => { S.task = null; draw(); } }));
+      list.append(chipsBox); if (active.children.length) list.append(active);
+      if (!recs.length) list.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'No safe tool matches. Clear a filter, or open Safety to see what is blocking.' }));
+      else list.append(el('div', { class: 'list' }, ...recs.map((r, i) => toolItem(r, i === 0 && !S.text))));
+    };
+    const list = el('div', { class: 'sec' });
+    v.append(el('div', { class: 'head' }, el('h1', { text: 'Explore' }), el('p', { text: 'Only tools that passed every safety check are listed.' })));
+    v.append(searchBox(S.text, (t) => { S.text = t; draw(); }), list); draw();
+  },
+
+  tool(v, id) {
+    const t = toolOf(id), profile = S.profile, caps = profile.person.capacities;
+    const r = run({}).recommendations.find((x) => x.tool_id === id);
+    const color = CAT[t.category].color;
+    v.append(el('div', { class: 'hero', style: `background:${color};color:${onColor(color)}` }, el('span', { class: 'label', style: 'color:inherit;opacity:.8', text: `${CAT[t.category].label} · ${t.kind === 'device' ? 'Device' : t.kind === 'digital' ? 'Digital' : 'Everyday workaround'}` }), el('h1', { text: t.name })));
+    v.append(el('p', { style: 'margin:0', text: t.summary }));
+    v.append(el('div', { class: 'sec' }, el('h3', { text: 'Helps you' }), el('div', { class: 'row2' }, ...t.addresses.map((a) => el('span', { class: 'tag', text: T.tasks[a].label })))));
+    const checks = [];
+    for (const [dim, raw] of Object.entries(t.demands)) { const min = typeof raw === 'number' ? raw : raw.min; checks.push(`${T.dimensions[dim].label}: you are at ${caps[dim]}, this needs ${min}${typeof raw === 'object' && raw.critical && t.hazards.severity === 'high' ? ' plus a safety margin' : ''}`); }
+    for (const tag of t.environment.requires_all) checks.push(`Home: ${T.environment_tags[tag].label}`);
+    for (const tag of t.environment.forbids_any) checks.push(`Home has no: ${T.environment_tags[tag].label.toLowerCase()}`);
+    for (const tag of [...t.tech.daily_use, ...t.tech.setup]) checks.push(`Tech: ${T.tech_tags[tag]}`);
+    v.append(el('div', { class: 'box' }, el('h3', { text: 'Why it fits you' }), ...(checks.length ? checks : ['No ability, home or tech requirements.']).map((c) => el('div', { class: 'check' }, el('i', { text: '✓' }), el('span', { text: c })))));
+    if (r && r.cautions.length) v.append(el('div', { class: 'box' }, el('h3', { text: 'Take care' }), ...r.cautions.map((c) => el('div', { class: 'check warn' }, el('i', { text: '!' }), el('span', { text: c })))));
+    if (r) {
+      const names = { headroom: 'Ability margin', coverage: 'Covers your goals', simplicity: 'Simplicity', hazard: 'Low hazard', evidence: 'Evidence', cost: 'Low cost' };
+      v.append(el('div', { class: 'box' }, el('div', { class: 'linkrow' }, el('h3', { text: 'How it ranked' }), el('span', { class: 'mono', text: r.score.toFixed(2) })),
+        ...Object.entries(r.breakdown).map(([k, val]) => el('div', { class: 'meter' }, el('span', { text: names[k] }), el('div', { class: 'bar2' }, el('i', { style: `width:${Math.round(val * 100)}%` })), el('span', { class: 'mono', text: val.toFixed(2) }))),
+        el('div', { class: 'muted', style: 'font-size:12px', text: 'Ranking only orders tools that already passed every safety check. It can never rescue a blocked one.' })));
+    } else v.append(el('div', { class: 'empty', text: 'This tool no longer passes the safety checks for the current profile.' }));
+    v.append(el('div', { class: 'muted', style: 'font-size:12px', text: `Catalogue status: ${t.safety_review.status}. Decision support only; not a substitute for an occupational therapist.` }));
+  },
+
+  safety(v) {
+    const all = run({});
+    const hard = all.excluded.filter((e) => e.failures.some((f) => f.kind === 'hard'));
+    const info = all.excluded.filter((e) => !hard.includes(e) && e.could_unlock);
+    const other = all.excluded.filter((e) => !hard.includes(e) && !info.includes(e));
+    v.append(el('div', { class: 'head' }, el('h1', { text: 'Kept out for your safety' }), el('p', { text: `${all.excluded.length} of ${all.meta.evaluated} tools were removed. Anything not confirmed counts as unsafe.` })));
+    const gaps = all.assessment_gaps.filter((g) => g.could_unlock);
+    if (gaps.length) v.append(el('div', { class: 'sec' }, el('h3', { text: 'Answer to unlock' }), ...gaps.map(gapRow)));
+    const group = (title, list, note) => list.length ? el('div', { class: 'sec' }, el('h3', { text: title }), note ? el('div', { class: 'muted', style: 'font-size:13px', text: note }) : null,
+      ...list.map((e) => el('div', { class: 'blocked' }, el('b', { text: e.name }), ...e.failures.map((f) => el('div', { class: 'reason' }, el('span', { class: 'tag ' + f.kind, text: f.code }), el('span', { text: f.detail })))))) : null;
+    v.append(group('Not safe for you', hard, 'A limit, a risk flag or a home condition rules these out. Confirming more facts will not change this.'));
+    v.append(group('Waiting on information', info, 'Not recommended until the missing facts are confirmed.'));
+    v.append(group('Other', other));
+    if (!all.excluded.length) v.append(el('div', { class: 'empty', text: 'Nothing was removed for these goals.' }));
+  },
+
+  profile(v) {
+    const p = S.profile, dims = Object.keys(T.dimensions), assessed = dims.filter((d) => p.person.capacities[d] != null).length;
+    v.append(el('div', { class: 'head' }, el('h1', { text: 'Profile' }), el('p', { text: 'The person, the home and the goals the engine works from.' })));
+    const sel = el('select', { class: 'sel', 'aria-label': 'Example person', onchange: (e) => loadProfile(e.target.value) });
+    for (const [k, pr] of Object.entries(PROFILES)) sel.append(el('option', { value: k, text: pr.person.label }));
+    sel.append(el('option', { value: '__blank', text: 'Blank profile: nothing assessed' })); sel.value = S.key;
+    v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Example person' }), sel));
+    const row = (title, sub, page) => el('button', { class: 'rowlink', onclick: () => go(page) }, el('span', {}, el('b', { text: title }), el('small', { text: sub })), el('span', { html: CHEV }));
+    v.append(el('div', { class: 'rows' },
+      row('What I want to do', `${p.occupation.goals.length} of ${Object.keys(T.tasks).length} selected`, 'p_goals'),
+      row('Abilities', `${assessed} of ${dims.length} assessed`, 'p_caps'),
+      row('Risk screening', `${p.person.risk_flags.length} flag${p.person.risk_flags.length === 1 ? '' : 's'} · screening ${p.person.risk_screening_complete ? 'done' : 'not done'}`, 'p_risk'),
+      row('Tech and budget', `${p.person.tech_literacy.length} skills · ${T.budget_bands[p.person.budget_band ?? 3]}`, 'p_tech'),
+      row('My home', `${p.environment.confirmed_tags.length} facts confirmed`, 'p_env')));
+    v.append(el('div', { class: 'rows' }, row('Settings', S.review ? 'Production mode' : 'Demo mode', 'p_settings')));
+  },
+
+  p_goals(v) {
+    const g = S.profile.occupation.goals;
+    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Pick what you want to do. With none picked, every safe tool is shown.' }));
+    for (const c of T.categories) {
+      const tasks = Object.entries(T.tasks).filter(([, t]) => t.category === c.id);
+      v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: c.label }), el('div', { class: 'pills' }, ...tasks.map(([id, t]) => togglePill(t.label, g.includes(id), '', (on) => setIn(g, id, on))))));
     }
-    $('caps').append(box);
-  }
-  for (const [f, label] of Object.entries(T.risk_flags)) $('risks').append(pillCheckbox('r_' + f, label, 'risk', (e) => toggle(S.profile.person.risk_flags, f, e.target.checked)));
-  $('screened').addEventListener('change', (e) => { S.profile.person.risk_screening_complete = e.target.checked; update(); });
-  for (const [t, label] of Object.entries(T.tech_tags)) $('tech').append(pillCheckbox('t_' + t, label, '', (e) => toggle(S.profile.person.tech_literacy, t, e.target.checked)));
-  const b = $('budget'); for (const [k, v] of Object.entries(T.budget_bands)) b.append(el('option', { value: k, text: v }));
-  b.addEventListener('change', () => { S.profile.person.budget_band = Number(b.value); update(); });
+  },
+  p_caps(v) {
+    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'What you can do reliably and safely on a bad day. "?" means not assessed, and counts against a tool.' }));
+    v.append(el('div', { class: 'row2' }, ...['0 Unable', '1 Severe', '2 Moderate', '3 Mild', '4 Typical'].map((s) => el('span', { class: 'tag', text: s }))));
+    const groups = {}; for (const [d, m] of Object.entries(T.dimensions)) (groups[m.group] ??= []).push([d, m.label]);
+    for (const [grp, dims] of Object.entries(groups)) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: grp }), ...dims.map(([d, label]) => capRow(d, label))));
+  },
+  p_risk(v) {
+    const p = S.profile.person;
+    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Flags block tools that could hurt. Screening must be marked complete before any tool with a hazard is eligible.' }));
+    v.append(el('div', { class: 'pills' }, ...Object.entries(T.risk_flags).map(([f, label]) => togglePill(label, p.risk_flags.includes(f), 'risk', (on) => setIn(p.risk_flags, f, on)))));
+    v.append(switchRow('Risk screening completed', 'Confirm only after every flag has been asked about.', p.risk_screening_complete, (on) => { p.risk_screening_complete = on; }));
+  },
+  p_tech(v) {
+    const p = S.profile.person;
+    v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Skills I have' }), el('div', { class: 'pills' }, ...Object.entries(T.tech_tags).map(([t, label]) => togglePill(label, p.tech_literacy.includes(t), '', (on) => setIn(p.tech_literacy, t, on))))));
+    const sel = el('select', { class: 'sel', 'aria-label': 'Budget', onchange: (e) => { p.budget_band = Number(e.target.value); refreshChrome(); } });
+    for (const [k, l] of Object.entries(T.budget_bands)) sel.append(el('option', { value: k, text: l })); sel.value = String(p.budget_band ?? 3);
+    v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: 'Budget per tool' }), sel));
+    v.append(switchRow('Prefer low-tech options', 'Ranks simple tools higher. Never affects safety.', !!p.preferences?.prefer_low_tech, (on) => { p.preferences = { ...(p.preferences ?? {}), prefer_low_tech: on }; }));
+  },
+  p_env(v) {
+    const tags = S.profile.environment.confirmed_tags, blockers = new Set(TOOLS.flatMap((t) => t.environment.forbids_any));
+    v.append(el('p', { class: 'muted', style: 'margin:0', text: 'Only switch on what is true. Anything left off is treated as not supported. Red tags block some tools.' }));
+    const domains = {}; for (const [t, m] of Object.entries(T.environment_tags)) (domains[m.domain] ??= []).push([t, m.label]);
+    for (const [dom, list] of Object.entries(domains)) v.append(el('div', { class: 'sec' }, el('div', { class: 'label', text: dom }), el('div', { class: 'pills' }, ...list.map(([t, label]) => togglePill(label, tags.includes(t), 'env' + (blockers.has(t) ? ' forb' : ''), (on) => setIn(tags, t, on))))));
+  },
+  p_settings(v) {
+    v.append(switchRow('Production mode', 'Only clinician-reviewed entries may be recommended. All 18 seed entries are drafts, so the app shows nothing.', S.review, (on) => { S.review = on; }));
+    v.append(el('div', { class: 'box' }, el('h3', { text: 'About' }), el('div', { class: 'muted', text: 'Matches people to assistive tools and everyday workarounds using the Person-Environment-Occupation model. It supports compensation and adaptation, not rehabilitation. Thresholds here are engineering placeholders. Decision support only.' })));
+    v.append(el('button', { class: 'btn ghost', text: 'Reset this example', onclick: () => { loadProfile(S.key); S.stack = [{ page: 'profile' }]; render(); } }));
+  },
+};
 
-  const domains = {};
-  for (const [t, m] of Object.entries(T.environment_tags)) (domains[m.domain] ??= []).push([t, m.label]);
-  const forbidden = new Set(TOOLS.flatMap((t) => t.environment.forbids_any));
-  for (const [dom, tags] of Object.entries(domains)) {
-    $('env').append(el('div', { class: 'label', text: dom }));
-    const box = el('div', { class: 'pills' });
-    for (const [t, label] of tags) box.append(pillCheckbox('e_' + t, label, 'env' + (forbidden.has(t) ? ' forb' : ''), (e) => toggle(S.profile.environment.confirmed_tags, t, e.target.checked)));
-    $('env').append(box);
-  }
-  $('env').append(el('p', { class: 'caution', text: 'Red tags are blockers for some tools (gas hob, loose rugs, stairs). Unchecked means not confirmed, which the engine treats as not supported.' }));
+// ---------- controls
+function refreshChrome() { const base = S.stack[0].page; const n = badgeCount(); const b = document.querySelector('.tab .badge'); const t = [...document.querySelectorAll('.tab')][2]; if (t) { b?.remove(); if (n) t.append(el('span', { class: 'badge', text: String(n) })); } }
+function setIn(arr, v, on) { const i = arr.indexOf(v); if (on && i < 0) arr.push(v); if (!on && i >= 0) arr.splice(i, 1); refreshChrome(); }
+function togglePill(label, on, cls, set) {
+  const b = el('button', { class: 'pill ' + cls, 'aria-pressed': String(on), text: label });
+  b.addEventListener('click', () => { const next = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', String(next)); set(next); });
+  return b;
 }
-function toggle(arr, v, on) { const i = arr.indexOf(v); if (on && i < 0) arr.push(v); if (!on && i >= 0) arr.splice(i, 1); update(); }
-function syncControls() {
-  const p = S.profile;
-  $('profileSel').value = S.key;
-  for (const id of Object.keys(T.tasks)) $('g_' + id).checked = p.occupation.goals.includes(id);
-  for (const d of Object.keys(T.dimensions)) { const v = p.person.capacities[d]; $('c_' + d).value = v === null || v === undefined ? '' : String(v); }
-  for (const f of Object.keys(T.risk_flags)) $('r_' + f).checked = p.person.risk_flags.includes(f);
-  $('screened').checked = !!p.person.risk_screening_complete;
-  for (const t of Object.keys(T.tech_tags)) $('t_' + t).checked = p.person.tech_literacy.includes(t);
-  $('budget').value = String(p.person.budget_band ?? 3);
-  for (const t of Object.keys(T.environment_tags)) $('e_' + t).checked = p.environment.confirmed_tags.includes(t);
+function switchRow(title, sub, on, set) {
+  const t = el('button', { class: 'toggle', role: 'switch', 'aria-pressed': String(!!on), 'aria-label': title });
+  t.addEventListener('click', () => { const next = t.getAttribute('aria-pressed') !== 'true'; t.setAttribute('aria-pressed', String(next)); set(next); refreshChrome(); });
+  return el('div', { class: 'switchrow' }, el('div', {}, el('b', { text: title }), el('div', { class: 'muted', style: 'font-size:13px', text: sub })), t);
+}
+function capRow(dim, label) {
+  const caps = S.profile.person.capacities, seg = el('div', { class: 'seg', role: 'group', 'aria-label': label });
+  const sync = () => [...seg.children].forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.v === '' ? null : Number(b.dataset.v)) === (caps[dim] ?? null))));
+  for (const v of [null, 0, 1, 2, 3, 4]) { const b = el('button', { class: v === null ? 'na' : '', 'data-v': v === null ? '' : String(v), text: v === null ? '?' : String(v), onclick: () => { caps[dim] = v; sync(); refreshChrome(); } }); seg.append(b); }
+  sync();
+  return el('div', { class: 'cap' }, el('span', { text: label }), seg);
+}
+function gapRow(g) {
+  const T2 = { SCREENING_INCOMPLETE: 'Finish the risk screening', CAPACITY_UNKNOWN: `Assess: ${T.dimensions[g.target]?.label}`, ENV_REQUIREMENT_UNCONFIRMED: `Is this true at home? ${T.environment_tags[g.target]?.label}`, SETUP_HELPER_UNAVAILABLE: 'Can someone set tools up for you?', TECH_UNCONFIRMED: `Can you do this? ${T.tech_tags[g.target]}` };
+  const apply = { SCREENING_INCOMPLETE: () => { S.profile.person.risk_screening_complete = true; }, ENV_REQUIREMENT_UNCONFIRMED: () => S.profile.environment.confirmed_tags.push(g.target), SETUP_HELPER_UNAVAILABLE: () => S.profile.environment.confirmed_tags.push('helper_available_for_setup'), TECH_UNCONFIRMED: () => S.profile.person.tech_literacy.push(g.target) }[g.code];
+  return el('div', { class: 'ask' }, el('div', {}, el('b', { text: T2[g.code] ?? g.code }), el('span', { text: `unlocks ${g.could_unlock} tool${g.could_unlock === 1 ? '' : 's'}` })),
+    apply ? el('button', { class: 'btn', text: 'Yes', onclick: () => { apply(); render(); } }) : el('button', { class: 'btn ghost', text: 'Assess', onclick: () => go('p_caps') }));
 }
 function loadProfile(k) {
-  S.key = k; S.cat = null; S.chips = [];
+  S.key = k; S.cat = null; S.chips = []; S.text = ''; S.task = null;
   S.profile = k === '__blank'
-    ? { person: { label: 'Blank', capacities: {}, risk_flags: [], risk_screening_complete: false, tech_literacy: [], budget_band: 3 }, environment: { confirmed_tags: [] }, occupation: { goals: ['cut_food', 'take_medications', 'remember_appointments'] } }
+    ? { person: { label: 'Blank profile', capacities: {}, risk_flags: [], risk_screening_complete: false, tech_literacy: [], budget_band: 3 }, environment: { confirmed_tags: [] }, occupation: { goals: ['cut_food', 'take_medications', 'remember_appointments'] } }
     : clone(PROFILES[k]);
-  syncControls(); renderResults();
+  render();
 }
-function update() { renderResults(); }
-
-// ---------- results
-function renderResults() {
-  $('modeNote').textContent = S.review
-    ? 'Production mode: only clinician-reviewed catalogue entries can be recommended. All 18 seed entries are drafts, so nothing appears.'
-    : 'Demo mode: unreviewed draft catalogue. Thresholds are illustrative, not clinical guidance.';
-  const reviewBtn = el('button', { class: 'ghost', style: 'margin-left:8px', onclick: () => { S.review = !S.review; renderResults(); }, text: S.review ? 'Switch to demo mode' : 'Try production mode' });
-  $('modeNote').append(document.createElement('br'), reviewBtn);
-
-  const query = { category: S.cat, chips: S.chips, text: S.text };
-  const cur = run(query);
-  const forCards = run({ chips: S.chips, text: S.text });
-  const m = cur.meta, hardBlocked = cur.excluded.filter((e) => !e.could_unlock && !e.failures.every((f) => f.kind === 'preference')).length;
-  const unlockable = cur.excluded.filter((e) => e.could_unlock).length;
-
-  $('stats').replaceChildren(
-    stat(cur.recommendations.length, 'recommended'), stat(hardBlocked, 'hard-blocked'), stat(unlockable, 'need more info'), stat(m.evaluated, 'tools considered'));
-
-  // chips (survivor-derived)
-  $('chips').replaceChildren(...cur.browse.chips.map((c) => {
-    const on = S.chips.includes(c.id);
-    return el('button', { class: 'pill', style: on ? 'background:var(--accent);color:var(--accent-ink)' : '', 'aria-pressed': String(on), onclick: () => { toggleArr(S.chips, c.id); renderResults(); }, text: `${c.label} · ${c.count}` });
-  }));
-
-  // category cards (survivor-derived; empty categories do not exist)
-  $('cards').replaceChildren(...forCards.browse.categories.map((c) => {
-    const btn = el('button', { class: 'card', 'aria-pressed': String(S.cat === c.id), style: `background:${c.color};color:${dark(c.color) ? '#fff' : '#1B2235'}`, onclick: () => { S.cat = S.cat === c.id ? null : c.id; renderResults(); } },
-      el('b', { text: c.label }), el('span', { text: `${c.count} safe option${c.count === 1 ? '' : 's'}` }));
-    return btn;
-  }));
-  if (!forCards.browse.categories.length) $('cards').replaceChildren(el('div', { class: 'empty', text: 'No categories to show. A category appears only when at least one tool in it passed every safety gate.' }));
-  $('clearCat').hidden = !S.cat; $('clearCat').onclick = () => { S.cat = null; renderResults(); };
-
-  // recommendations
-  const recs = $('recs'); recs.replaceChildren();
-  if (!cur.recommendations.length) recs.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be recommended: the catalogue has no clinician-reviewed entries.' : 'Every candidate tool was disqualified or filtered out. See the reasons below.' }));
-  for (const r of cur.recommendations) {
-    recs.append(el('div', { class: 'tool' },
-      el('div', { class: 'row' }, el('h3', { text: r.name }), el('div', { class: 'row', style: 'gap:8px' }, el('span', { class: 'tag sev-' + r.hazard_severity, text: 'hazard: ' + r.hazard_severity }), el('div', { class: 'bar', title: 'score ' + r.score }, el('i', { style: `width:${Math.round(r.score * 100)}%` })), el('span', { class: 'mono', text: r.score.toFixed(2) }))),
-      el('div', { text: r.summary }),
-      el('div', { class: 'pills' }, ...r.addresses.map((a) => el('span', { class: 'tag', text: taskLabel(a) }))),
-      ...r.cautions.map((c) => el('div', { class: 'caution', text: 'Caution: ' + c }))));
-  }
-
-  // gaps
-  const gaps = $('gaps'); gaps.replaceChildren();
-  $('gapTitle').textContent = `Questions that could unlock more tools (${cur.assessment_gaps.filter((g) => g.could_unlock).length})`;
-  const gapList = cur.assessment_gaps.filter((g) => g.could_unlock);
-  if (!gapList.length) gaps.append(el('div', { class: 'empty', text: 'No unanswered question would change the result.' }));
-  for (const g of gapList) gaps.append(gapRow(g));
-
-  // excluded
-  const ex = $('excl'); ex.replaceChildren();
-  $('exclTitle').textContent = `Disqualified (${cur.excluded.length})`;
-  if (!cur.excluded.length) ex.append(el('div', { class: 'empty', text: 'Nothing disqualified for these goals.' }));
-  for (const e of cur.excluded) {
-    ex.append(el('div', { class: 'excl' }, el('b', { text: e.name }), el('ul', {}, ...e.failures.map((f) =>
-      el('li', {}, el('span', { class: 'tag ' + f.kind, text: f.code }), el('span', { text: f.detail }))))));
-  }
-}
-function stat(n, label) { return el('div', { class: 'stat' }, el('b', { text: String(n) }), el('span', { class: 'label', text: label })); }
-function toggleArr(a, v) { const i = a.indexOf(v); i < 0 ? a.push(v) : a.splice(i, 1); }
-function gapRow(g) {
-  const what = { SCREENING_INCOMPLETE: 'Finish the risk-flag screening', CAPACITY_UNKNOWN: `Assess ${T.dimensions[g.target]?.label ?? g.target}`, ENV_REQUIREMENT_UNCONFIRMED: `Confirm: ${T.environment_tags[g.target]?.label}`, SETUP_HELPER_UNAVAILABLE: 'Confirm someone can set tools up', TECH_UNCONFIRMED: `Confirm skill: ${T.tech_tags[g.target]}` }[g.code] ?? g.code;
-  const row = el('div', { class: 'gap' }, el('div', {}, el('div', { text: what }), el('div', { class: 'caution', text: `unlocks ${g.could_unlock} tool${g.could_unlock === 1 ? '' : 's'}` })));
-  const apply = {
-    SCREENING_INCOMPLETE: () => { S.profile.person.risk_screening_complete = true; },
-    ENV_REQUIREMENT_UNCONFIRMED: () => { S.profile.environment.confirmed_tags.push(g.target); },
-    SETUP_HELPER_UNAVAILABLE: () => { S.profile.environment.confirmed_tags.push('helper_available_for_setup'); },
-    TECH_UNCONFIRMED: () => { S.profile.person.tech_literacy.push(g.target); },
-  }[g.code];
-  if (apply) row.append(el('button', { class: 'act', text: 'Yes, confirm', onclick: () => { apply(); syncControls(); renderResults(); } }));
-  else row.append(el('span', { class: 'caution', text: 'set it in the panel on the left' }));
-  return row;
-}
-
-$('q').addEventListener('input', (e) => { S.text = e.target.value; renderResults(); });
-buildControls(); loadProfile(S.key);
+loadProfile(S.key);
 </script>
