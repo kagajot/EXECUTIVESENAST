@@ -285,6 +285,16 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .gsteps li span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gn{flex:none;width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700}
 .gmore{font-size:12px;color:var(--muted);margin-top:auto}
+.billboard{flex-direction:row;align-items:center;gap:8px;padding:20px 16px 20px 20px;min-height:0}
+.bbtext{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.billboard .ill{order:0;flex:none;align-self:center;width:112px;height:112px;margin:0}
+.billboard h1{font-size:22px;line-height:1.12;-webkit-line-clamp:5}
+.bbtns{margin-top:4px}.bbtn{padding:10px 16px}
+.billboard .ill{width:96px;height:96px}
+.billboard h1{font-size:21px}
+.billboard{padding:18px 12px 18px 20px}
+.bbtext>h1,.bbtext>p,.bbtext>.label{max-width:none}
+.bbtn{font-size:13.5px;padding:9px 15px}
 </style>
 
 <div class="stage">
@@ -787,9 +797,9 @@ const PAGES = {
       feat ??= GUIDES.find((x) => x.id === 'g_routine');
       const fm = guideMeta(feat), fvid = feat.tool ? VIDEOS.find((x) => x.tool === feat.tool && videoState(x, ids) !== 'blocked') : null;
       box.append(el('div', { class: 'billboard', style: `background:${fm.color};color:${onColor(fm.color)}` },
-        el('span', { class: 'label', style: 'color:inherit;opacity:.75', text: feat.tool ? 'Featured for your goals' : 'Start here' }),
+        el('div', { class: 'bbtext' }, el('span', { class: 'label', style: 'color:inherit;opacity:.75', text: feat.tool ? 'Featured for your goals' : 'Start here' }),
         el('h1', { text: feat.title }), el('p', { text: `${feat.steps.length} steps · ${feat.minutes} min read` }),
-        el('div', { class: 'bbtns' }, el('button', { class: 'bbtn solid', text: 'Start guide', onclick: () => go('guide', feat.id) }), fvid ? el('a', { class: 'bbtn line', href: fvid.url, target: '_blank', rel: 'noopener noreferrer', text: 'Watch video' }) : null), ill(fm.ill)));
+        el('div', { class: 'bbtns' }, el('button', { class: 'bbtn solid', text: 'Start guide', onclick: () => go('guide', feat.id) }), fvid ? el('a', { class: 'bbtn line', href: fvid.url, target: '_blank', rel: 'noopener noreferrer', text: 'Watch video' }) : null)), ill(fm.ill)));
 
       const row = (title, more, cards) => el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: title }), more ? el('button', { class: 'link', text: 'See all', onclick: more }) : null), el('div', { class: 'hscroll' }, ...cards));
       const toLearn = (t) => () => { S.learnTab = t; tab('learn'); };
