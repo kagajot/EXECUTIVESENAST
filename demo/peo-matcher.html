@@ -247,6 +247,37 @@ main#view[data-page="profile"]{background:transparent url("data:image/svg+xml,%3
 .gnum{flex:none;width:64px;height:64px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
 .gnum b{font-family:var(--f-display);font-weight:800;font-size:26px}.gnum small{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.85;margin-top:3px}
 .grow .txt{display:flex;flex-direction:column;gap:3px;min-width:0}.grow .txt b{font-family:var(--f-display);font-size:16px;line-height:1.2}.grow .txt span{color:var(--muted);font-size:13px}
+.billboard{position:relative;overflow:hidden;border-radius:26px;min-height:330px;padding:22px;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;text-align:left}
+.billboard>*:not(.ill){position:relative;z-index:1}
+.billboard .ill{position:absolute;right:-14px;top:8px;width:210px;height:210px;pointer-events:none}
+.billboard h1{font-size:27px;line-height:1.1;max-width:64%;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.billboard p{margin:0;font-size:14px;opacity:.85}
+.bbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.bbtn{border:0;border-radius:999px;padding:11px 20px;font:inherit;font-weight:700;font-size:14px;cursor:pointer;text-decoration:none;color:inherit}
+.bbtn.solid{background:#fff;color:var(--ink);box-shadow:0 4px 14px rgba(20,26,43,.14)}
+.bbtn.line{background:rgba(255,255,255,.4)}
+.poster{position:relative;flex:none;width:150px;height:214px;border:0;border-radius:18px;overflow:hidden;padding:14px;text-align:left;cursor:pointer;scroll-snap-align:start}
+.poster b{position:relative;display:block;font-family:var(--f-display);font-size:16px;line-height:1.15}
+.poster .ill{position:absolute;left:50%;transform:translateX(-50%);bottom:-14px;width:132px;height:132px;pointer-events:none}
+.gcard{flex:none;width:232px;border:0;border-radius:18px;overflow:hidden;background:var(--surface);text-align:left;cursor:pointer;scroll-snap-align:start;display:flex;flex-direction:column;padding:0}
+.gtop{padding:10px 14px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.gbody{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px}
+.gbody b{font-family:var(--f-display);font-size:17px;line-height:1.2}.gbody span{color:var(--muted);font-size:13px}
+.rcard{flex:none;width:214px;min-height:158px;border:1.5px solid var(--line);border-radius:18px;background:#fff;padding:14px;text-align:left;cursor:pointer;scroll-snap-align:start;display:flex;flex-direction:column;gap:6px}
+.rcard .topic{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.rcard b{font-family:var(--f-display);font-size:18px;line-height:1.2}.rcard .read{margin-top:auto;font-size:13px;color:var(--muted)}
+.billboard .ill{width:176px;height:176px;right:-6px;top:14px}
+.billboard>.label,.billboard>h1,.billboard>p{max-width:57%}
+.poster{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start}
+.chk>b,.chk>span:not(.ill){max-width:64%}
+.chk:not(.full)>b,.chk:not(.full)>span:not(.ill){max-width:54%}
+.chk:not(.full) .ill{width:72px;height:72px;right:8px}
+.billboard h1{font-size:24px;-webkit-line-clamp:4}
+.chk:not(.full){width:252px}
+.billboard{justify-content:flex-start;min-height:0;gap:6px}
+.billboard .ill{position:relative;order:-1;align-self:flex-end;right:auto;top:auto;width:150px;height:150px;margin:-4px -8px 4px 0}
+.billboard>.label,.billboard>h1,.billboard>p{max-width:none}
+.billboard h1{font-size:26px;-webkit-line-clamp:4}
 </style>
 
 <div class="stage">
@@ -1063,8 +1094,8 @@ const PAGES = {
       const all = run({}), recs = all.recommendations, ids = new Set(recs.map((r) => r.tool_id)), searching = S.text.trim() || S.chips.length || S.task;
       const bubbles = el('div', { class: 'bubbles' }, ...all.browse.chips.map((c) => el('button', { class: 'bubble', 'aria-pressed': String(S.chips.includes(c.id)), text: c.label, onclick: () => { const i = S.chips.indexOf(c.id); i < 0 ? S.chips.push(c.id) : S.chips.splice(i, 1); draw(); } })),
         S.task ? el('button', { class: 'bubble', 'aria-pressed': 'true', text: T.tasks[S.task].label + '  ×', onclick: () => { S.task = null; draw(); } }) : null);
-      if (bubbles.children.length) box.append(bubbles);
       if (searching) {
+        if (bubbles.children.length) box.append(bubbles);
         const cur = run({ chips: S.chips, text: S.text }); let r = cur.recommendations; if (S.task) r = r.filter((x) => x.addresses.includes(S.task));
         const t = S.text.trim().toLowerCase();
         const vids = t ? VIDEOS.filter((x) => videoState(x, ids) !== 'blocked' && (x.title.toLowerCase().includes(t) || CAT[x.category].label.toLowerCase().includes(t))) : [];
@@ -1079,29 +1110,34 @@ const PAGES = {
         if (!r.length && !vids.length && !checks.length && !gds.length && !arts.length) box.append(el('div', { class: 'empty', text: S.review ? 'Nothing can be shown while the catalogue has no clinician-reviewed entries.' : 'Nothing safe matches that. Clear the search, or try a check-in in Learn to open more up.' }));
         return;
       }
-      // Explore is organised by what you want to do: for each goal, the safe tool with its guide, video and reading together.
-      // (Learn is the library organised by content type.)
-      const goals = S.profile.occupation.goals, showGoals = S.exploreAll ? goals : goals.slice(0, 3);
-      const goalSection = (gid) => {
-        const cat = T.tasks[gid].category, mine = recs.filter((r) => r.addresses.includes(gid)), toolIds = new Set(mine.map((r) => r.tool_id));
-        const guide = GUIDES.find((g) => guideState(g) !== 'blocked' && (g.tool ? toolIds.has(g.tool) : g.category === cat));
-        const video = VIDEOS.find((x) => videoState(x, ids) !== 'blocked' && (x.tool ? toolIds.has(x.tool) : x.category === cat));
-        const art = ARTICLES.find((a) => a.cats?.includes(cat));
-        const rows = [];
-        if (mine.length) rows.push(toolItem(mine[0], mine[0].tool_id === recs[0]?.tool_id));
-        else rows.push(el('div', { class: 'empty', style: 'text-align:left' }, S.review ? 'Nothing can be shown until the catalogue is clinician-reviewed.' : 'No tool has passed the safety checks for this yet.', el('br'), el('button', { class: 'link', text: 'Answer a check-in to open some up', onclick: () => { S.learnTab = 'checkins'; tab('learn'); } })));
-        if (guide) rows.push(guideRow(guide));
-        if (video) rows.push(videoNode(video, videoState(video, ids), true));
-        if (art) rows.push(el('div', { class: 'alist' }, articleRow(art)));
-        return el('div', { class: 'sec' }, el('h2', { text: T.tasks[gid].label }), ...rows);
-      };
-      if (goals.length) {
-        box.append(...showGoals.map(goalSection));
-        if (goals.length > 3) box.append(el('button', { class: 'btn ghost', text: S.exploreAll ? 'Show fewer goals' : `Show all ${goals.length} goals`, onclick: () => { S.exploreAll = !S.exploreAll; draw(); } }));
-      } else {
-        box.append(el('div', { class: 'sec' }, el('h2', { text: 'Start here' }), articleRow(ARTICLES[0]), guideRow(GUIDES.find((g) => g.id === 'g_routine')), el('button', { class: 'btn', text: 'Choose what you want to do', onclick: () => go('p_goals') })));
+      // Netflix-style: a billboard, then rows. Every row has its own card shape, so the type is clear before you read a word.
+      const goals = S.profile.occupation.goals;
+      let feat = null;
+      for (const gid of goals) {
+        const toolIds = new Set(recs.filter((r) => r.addresses.includes(gid)).map((r) => r.tool_id));
+        feat = GUIDES.find((x) => x.tool && toolIds.has(x.tool) && guideState(x) !== 'blocked'); if (feat) break;
       }
-      box.append(el('button', { class: 'link', style: 'align-self:flex-start', text: 'Browse the full library in Learn', onclick: () => tab('learn') }));
+      feat ??= GUIDES.find((x) => x.id === 'g_routine');
+      const fm = guideMeta(feat), fvid = feat.tool ? VIDEOS.find((x) => x.tool === feat.tool && videoState(x, ids) !== 'blocked') : null;
+      box.append(el('div', { class: 'billboard', style: `background:${fm.color};color:${onColor(fm.color)}` },
+        el('span', { class: 'label', style: 'color:inherit;opacity:.75', text: feat.tool ? 'Featured for your goals' : 'Start here' }),
+        el('h1', { text: feat.title }), el('p', { text: `${feat.steps.length} steps · ${feat.minutes} min read` }),
+        el('div', { class: 'bbtns' }, el('button', { class: 'bbtn solid', text: 'Start guide', onclick: () => go('guide', feat.id) }), fvid ? el('a', { class: 'bbtn line', href: fvid.url, target: '_blank', rel: 'noopener noreferrer', text: 'Watch video' }) : null), ill(fm.ill)));
+
+      const row = (title, more, cards) => el('div', { class: 'sec' }, el('div', { class: 'sechead' }, el('h2', { text: title }), more ? el('button', { class: 'link', text: 'See all', onclick: more }) : null), el('div', { class: 'hscroll' }, ...cards));
+      const toLearn = (t) => () => { S.learnTab = t; tab('learn'); };
+      const gcard = (g) => { const m = guideMeta(g); return el('button', { class: 'gcard', onclick: () => go('guide', g.id) }, el('div', { class: 'gtop', style: `background:${m.color};color:${onColor(m.color)}`, text: `${g.steps.length} steps · ${g.minutes} min` }), el('div', { class: 'gbody' }, el('b', { text: g.title }), el('span', { text: m.label }))); };
+      const rcard = (a) => el('button', { class: 'rcard', onclick: () => go('article', a.id) }, el('span', { class: 'topic', text: a.topic }), el('b', { text: a.title }), el('span', { class: 'read', text: `${a.minutes} min read` }));
+
+      if (recs.length) box.append(row('Top picks for you', () => go('category', '__best'), recs.slice(0, 8).map((r) => { const c = CAT[r.category].color; return el('button', { class: 'poster', style: `background:${c};color:${onColor(c)}`, onclick: () => go('tool', r.tool_id) }, el('b', { text: r.name }), ill(r.category)); })));
+      else box.append(el('div', { class: 'sec' }, el('h2', { text: 'Top picks for you' }), el('div', { class: 'empty', style: 'text-align:left' }, S.review ? 'Nothing can be shown until the catalogue is clinician-reviewed.' : 'Nothing has passed the safety checks yet. Your picks will appear here.', el('br'), el('button', { class: 'link', text: 'Start a check-in', onclick: toLearn('checkins') }))));
+      const openChecks = CHECKINS.filter((c) => { const inf = checkinInfo(c, all); return inf.done < inf.total; });
+      if (openChecks.length) box.append(row('Continue your check-ins', toLearn('checkins'), openChecks.map((c) => checkinCard(c, all, false))));
+      const rel = (g) => (g.tool && ids.has(g.tool) ? 0 : 1);
+      box.append(row('Step by step', toLearn('guides'), GUIDES.filter((x) => guideState(x) !== 'blocked').sort((a, b) => rel(a) - rel(b)).map(gcard)));
+      const vids = VIDEOS.filter((x) => videoState(x, ids) !== 'blocked');
+      if (vids.length) box.append(row('Watch and learn', toLearn('videos'), vids.map((x) => videoNode(x, videoState(x, ids), false))));
+      box.append(row('Read', toLearn('articles'), ARTICLES.map(rcard)));
     };
     v.append(searchBox(S.text, (t) => { S.text = t; draw(); }), box); draw();
   },
